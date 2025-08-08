@@ -1,5 +1,4 @@
-import React from 'react';
-import ExpenseItem from './ExpenseItem';
+import ExpenseItem from "./ExpenseItem";
 
 const ExpenseList = ({ expenses, onEditExpense }) => {
   if (expenses.length === 0) {
@@ -13,15 +12,8 @@ const ExpenseList = ({ expenses, onEditExpense }) => {
   return (
     <div className="space-y-4">
       {expenses.map((expense, index) => (
-        <div 
-          key={expense.id} 
-          className="animate-fadeIn"
-          style={{animationDelay: `${index * 100}ms`}}
-        >
-          <ExpenseItem 
-            expense={expense}
-            onEdit={onEditExpense}
-          />
+        <div key={expense.id} className="animate-fadeIn" style={{ animationDelay: `${index * 100}ms` }}>
+          <ExpenseItem expense={expense} onEdit={onEditExpense} />
         </div>
       ))}
     </div>

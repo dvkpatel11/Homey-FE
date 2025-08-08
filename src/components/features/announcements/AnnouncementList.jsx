@@ -1,5 +1,4 @@
-import React from 'react';
-import AnnouncementItem from './AnnouncementItem';
+import AnnouncementItem from "./AnnouncementItem";
 
 const AnnouncementList = ({ announcements, onVote, onAddComment }) => {
   if (announcements.length === 0) {
@@ -13,16 +12,8 @@ const AnnouncementList = ({ announcements, onVote, onAddComment }) => {
   return (
     <div className="space-y-6">
       {announcements.map((announcement, index) => (
-        <div 
-          key={announcement.id} 
-          className="animate-fadeIn"
-          style={{animationDelay: `${index * 100}ms`}}
-        >
-          <AnnouncementItem 
-            announcement={announcement}
-            onVote={onVote}
-            onAddComment={onAddComment}
-          />
+        <div key={announcement.id} className="animate-fadeIn" style={{ animationDelay: `${index * 100}ms` }}>
+          <AnnouncementItem announcement={announcement} onVote={onVote} onAddComment={onAddComment} />
         </div>
       ))}
     </div>

@@ -1,5 +1,4 @@
-import React from 'react';
-import TaskItem from './TaskItem';
+import TaskItem from "./TaskItem";
 
 const TaskList = ({ tasks, onToggleComplete, onEditTask }) => {
   if (tasks.length === 0) {
@@ -13,16 +12,8 @@ const TaskList = ({ tasks, onToggleComplete, onEditTask }) => {
   return (
     <div className="space-y-4">
       {tasks.map((task, index) => (
-        <div 
-          key={task.id} 
-          className="animate-fadeIn"
-          style={{animationDelay: `${index * 100}ms`}}
-        >
-          <TaskItem 
-            task={task}
-            onToggleComplete={onToggleComplete}
-            onEdit={onEditTask}
-          />
+        <div key={task.id} className="animate-fadeIn" style={{ animationDelay: `${index * 100}ms` }}>
+          <TaskItem task={task} onToggleComplete={onToggleComplete} onEdit={onEditTask} />
         </div>
       ))}
     </div>

@@ -1,32 +1,32 @@
-import API_CONFIG from '../config/api.js';
-import { mockApiCall } from './mock-client.js';
-import { prodApiCall } from './prod-client.js';
+import API_CONFIG from "../config/api.js";
+import { mockApiCall } from "./mock-client.js";
+import { prodApiCall } from "./prod-client.js";
 
 // Main API client that routes to mock or prod
 export const apiClient = {
   get: (endpoint, options = {}) => {
-    return API_CONFIG.MODE === 'mock' 
-      ? mockApiCall('GET', endpoint, null, options)
-      : prodApiCall('GET', endpoint, options);
+    return API_CONFIG.MODE === "mock"
+      ? mockApiCall("GET", endpoint, null, options)
+      : prodApiCall("GET", endpoint, options);
   },
-  
+
   post: (endpoint, data, options = {}) => {
-    return API_CONFIG.MODE === 'mock'
-      ? mockApiCall('POST', endpoint, data, options)
-      : prodApiCall('POST', endpoint, { ...options, data });
+    return API_CONFIG.MODE === "mock"
+      ? mockApiCall("POST", endpoint, data, options)
+      : prodApiCall("POST", endpoint, { ...options, data });
   },
-  
+
   put: (endpoint, data, options = {}) => {
-    return API_CONFIG.MODE === 'mock'
-      ? mockApiCall('PUT', endpoint, data, options)
-      : prodApiCall('PUT', endpoint, { ...options, data });
+    return API_CONFIG.MODE === "mock"
+      ? mockApiCall("PUT", endpoint, data, options)
+      : prodApiCall("PUT", endpoint, { ...options, data });
   },
-  
+
   delete: (endpoint, options = {}) => {
-    return API_CONFIG.MODE === 'mock'
-      ? mockApiCall('DELETE', endpoint, null, options)
-      : prodApiCall('DELETE', endpoint, options);
-  }
+    return API_CONFIG.MODE === "mock"
+      ? mockApiCall("DELETE", endpoint, null, options)
+      : prodApiCall("DELETE", endpoint, options);
+  },
 };
 
 // Utility for building query strings
