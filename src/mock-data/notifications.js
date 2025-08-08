@@ -1,0 +1,56 @@
+// Notification Mock Data (matching API spec)
+
+export const notifications = [
+  {
+    id: 'notification-1',
+    user_id: 'user-123',
+    household_id: 'household-abc123',
+    title: 'Task Completed',
+    message: 'Jane Smith completed "Clean kitchen"',
+    type: 'task_completed',
+    related_id: 'task-2',
+    related_table: 'tasks',
+    read_at: null,
+    created_at: '2024-02-10T15:30:00Z',
+    updated_at: '2024-02-10T15:30:00Z'
+  },
+  {
+    id: 'notification-2',
+    user_id: 'user-123',
+    household_id: 'household-abc123',
+    title: 'Payment Received',
+    message: 'Mike Johnson paid $22.00 for Internet Bill',
+    type: 'payment_received',
+    related_id: 'bill-2',
+    related_table: 'bills',
+    read_at: '2024-02-10T14:00:00Z',
+    created_at: '2024-02-10T12:15:00Z',
+    updated_at: '2024-02-10T14:00:00Z'
+  },
+  {
+    id: 'notification-3',
+    user_id: 'user-123',
+    household_id: 'household-abc123',
+    title: 'Task Swap Request',
+    message: 'You requested to swap "Vacuum living room" with Mike Johnson',
+    type: 'swap_request',
+    related_id: 'swap-1',
+    related_table: 'task_swaps',
+    read_at: null,
+    created_at: '2024-02-11T10:15:00Z',
+    updated_at: '2024-02-11T10:15:00Z'
+  },
+  {
+    id: 'notification-4',
+    user_id: 'user-123',
+    household_id: 'household-abc123',
+    title: 'Bill Due Soon',
+    message: 'Electricity Bill is due in 3 days',
+    type: 'bill_due',
+    related_id: 'bill-1',
+    related_table: 'bills',
+    read_at: null,
+    created_at: '2024-02-12T09:00:00Z',
+    updated_at: '2024-02-12T09:00:00Z'
+  }
+];
