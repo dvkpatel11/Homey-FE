@@ -1,13 +1,30 @@
+import AnnouncementList from "components/features/announcements/AnnouncementList";
+import FloatingActionButton from "components/ui/FloatingActionButton";
+import GlassButton from "components/ui/GlassButton";
+import GlassModal from "components/ui/GlassModal";
+import { useAuth } from "contexts/AuthContext";
 import { useState } from "react";
-import AnnouncementList from "../components/features/announcements/AnnouncementList";
-import FloatingActionButton from "../components/ui/FloatingActionButton";
-import GlassButton from "../components/ui/GlassButton";
-import Modal from "../components/ui/Modal";
-import { useAuth } from "../contexts/AuthContext";
-import { useData } from "../contexts/DataContext";
 
 const AnnouncementsPage = () => {
-  const { announcements, addAnnouncement, addComment, vote } = useData();
+  const announcements = [
+    { id: 1, title: "Meeting at 7 PM", comments: [], votes: 0 },
+    { id: 2, title: "Grocery run tomorrow", comments: [], votes: 0 },
+  ];
+
+  const addAnnouncement = (announcement) => {
+    console.log("Adding announcement:", announcement);
+    // Mock behavior here — update announcements array if needed
+  };
+
+  const addComment = (announcementId, comment) => {
+    console.log(`Adding comment to announcement ${announcementId}:`, comment);
+    // Mock behavior here
+  };
+
+  const vote = (announcementId) => {
+    console.log(`Voting on announcement ${announcementId}`);
+    // Mock behavior here
+  };
   const { currentUser } = useAuth();
   const [showAddModal, setShowAddModal] = useState(false);
   const [newAnnouncement, setNewAnnouncement] = useState({
@@ -35,7 +52,7 @@ const AnnouncementsPage = () => {
 
       <FloatingActionButton onClick={() => setShowAddModal(true)} color="from-indigo-500 to-purple-600" />
 
-      <Modal
+      <GlassModal
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
         title="Add Announcement"
@@ -76,7 +93,7 @@ const AnnouncementsPage = () => {
             <span className="text-gray-200 font-light">Poll</span>
           </label>
         </div>
-      </Modal>
+      </GlassModal>
     </div>
   );
 };

@@ -1,7 +1,7 @@
 // src/contexts/HouseholdContext.js - PRODUCTION VERSION
 import { createContext, useContext, useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { householdApi } from "../lib/api";
+import { householdApi } from 'lib/api';
 import { useAuth } from "./AuthContext";
 
 const HouseholdContext = createContext();

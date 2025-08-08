@@ -1,4 +1,4 @@
-import * as mockData from "../../../mock-data/index.js";
+import * as mockData from 'mock-data/index.js';
 
 export const handleHouseholdMock = async (method, endpoint, data, options) => {
   // GET /api/households - List user's households

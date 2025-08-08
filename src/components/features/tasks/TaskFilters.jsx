@@ -1,7 +1,7 @@
+import GlassCard from "components/ui/GlassCard";
+import GlassInput from "components/ui/GlassInput";
+import { useTheme } from "contexts/ThemeContext";
 import { Search } from "lucide-react";
-import { useTheme } from "../../../contexts/ThemeContext";
-import GlassCard from "../../ui/GlassCard ";
-import Input from "../../ui/Input";
 
 const TaskFilters = ({ searchQuery, setSearchQuery, filter, setFilter }) => {
   const { isDarkMode } = useTheme();
@@ -10,7 +10,7 @@ const TaskFilters = ({ searchQuery, setSearchQuery, filter, setFilter }) => {
     <GlassCard className="p-6">
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex-1">
-          <Input
+          <GlassInput
             placeholder="Search tasks..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}

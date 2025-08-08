@@ -1,11 +1,11 @@
+import TaskFilters from "components/features/tasks/TaskFilters";
+import TaskList from "components/features/tasks/TaskList";
+import FloatingActionButton from "components/ui/FloatingActionButton";
+import GlassButton from "components/ui/GlassButton";
+import GlassInput from "components/ui/GlassInput";
+import GlassModal from "components/ui/GlassModal";
+import { useTasks } from "hooks/useTasks";
 import { useState } from "react";
-import TaskFilters from "../components/features/tasks/TaskFilters";
-import TaskList from "../components/features/tasks/TaskList";
-import FloatingActionButton from "../components/ui/FloatingActionButton";
-import GlassButton from "../components/ui/GlassButton";
-import Input from "../components/ui/Input";
-import Modal from "../components/ui/Modal";
-import { useTasks } from "../hooks/useTasks";
 
 const TasksPage = () => {
   const { tasks, searchQuery, setSearchQuery, filter, setFilter, addTask, toggleTaskCompletion } = useTasks();
@@ -46,7 +46,7 @@ const TasksPage = () => {
 
       <FloatingActionButton onClick={() => setShowAddModal(true)} color="from-slate-500 to-gray-600" />
 
-      <Modal
+      <GlassModal
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
         title="Add Task"
@@ -56,7 +56,7 @@ const TasksPage = () => {
           </GlassButton>
         }
       >
-        <Input
+        <GlassInput
           label="Task Title"
           value={newTask.title}
           onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
@@ -70,7 +70,7 @@ const TasksPage = () => {
           className="w-full p-4 bg-gradient-to-br from-white/[0.06] to-white/[0.03] backdrop-blur-xl border border-white/[0.15] rounded-2xl outline-none h-24 text-white placeholder-gray-400 font-light resize-none"
         />
 
-        <Input
+        <GlassInput
           label="Due Date"
           type="date"
           value={newTask.dueDate}
@@ -87,7 +87,7 @@ const TasksPage = () => {
           <option value="Sarah">Sarah</option>
           <option value="Mike">Mike</option>
         </select>
-      </Modal>
+      </GlassModal>
     </div>
   );
 };

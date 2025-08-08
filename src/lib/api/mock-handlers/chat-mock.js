@@ -1,4 +1,4 @@
-import * as mockData from "../../../mock-data/index.js";
+import * as mockData from 'mock-data/index.js';
 
 export const handleChatMock = async (method, endpoint, data, options) => {
   // GET /api/households/:id/messages - Get chat history

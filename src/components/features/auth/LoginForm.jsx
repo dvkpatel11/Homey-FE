@@ -1,7 +1,7 @@
 import { Eye, EyeOff, Home, Moon, Sun } from "lucide-react";
 import { useState } from "react";
-import { useAuth } from "../../../contexts/AuthContext";
-import { useTheme } from "../../../contexts/ThemeContext";
+import { useAuth } from 'contexts/AuthContext';
+import { useTheme } from 'contexts/ThemeContext';
 
 const LoginForm = () => {
   const { toggleTheme, isDarkMode, themeClasses } = useTheme();

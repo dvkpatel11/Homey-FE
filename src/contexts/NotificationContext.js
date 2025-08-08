@@ -1,7 +1,7 @@
 // src/contexts/NotificationContext.js - PRODUCTION VERSION
 import { createContext, useContext, useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { notificationApi } from "../lib/api";
+import { notificationApi } from 'lib/api';
 import { useAuth } from "./AuthContext";
 
 const NotificationContext = createContext();

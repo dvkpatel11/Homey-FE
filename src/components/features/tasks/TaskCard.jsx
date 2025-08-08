@@ -1,7 +1,7 @@
+import GlassCard from "components/ui/GlassCard";
+import { useTheme } from "contexts/ThemeContext";
+import { getPriorityColor } from "lib/utils/calculations";
 import { CheckSquare, MoreHorizontal } from "lucide-react";
-import { useTheme } from "../../../contexts/ThemeContext";
-import { getPriorityColor } from "../../../utils/calculations";
-import GlassCard from "../../ui/GlassCard";
 
 const TaskItem = ({ task, onToggleComplete, onEdit }) => {
   const { isDarkMode } = useTheme();

@@ -1,4 +1,4 @@
-import * as mockData from "../../../mock-data/index.js";
+import * as mockData from 'mock-data/index.js';
 
 export const handleNotificationMock = async (method, endpoint, data, options) => {
   // GET /api/notifications - Get user notifications

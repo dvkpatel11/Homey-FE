@@ -1,8 +1,8 @@
+import GlassCard from "components/ui/GlassCard"; // ← FIXED: Now uses GlassCard
+import { useHousehold } from "contexts/HouseholdContext";
+import { useTheme } from "contexts/ThemeContext";
+import { getCurrentWeekDates } from "lib/utils/dateHelpers";
 import { CheckSquare, DollarSign, MessageSquare } from "lucide-react";
-import GlassCard from "../../components/ui/GlassCard"; // ← FIXED: Now uses GlassCard
-import { useHousehold } from "../../contexts/HouseholdContext";
-import { useTheme } from "../../contexts/ThemeContext";
-import { getCurrentWeekDates } from "../../utils/dateHelpers";
 
 const DashboardPage = () => {
   const { isDarkMode, themeClasses } = useTheme();

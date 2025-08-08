@@ -1,5 +1,5 @@
-import { useTheme } from "../../../contexts/ThemeContext";
-import GlassCard from "../../ui/GlassCard ";
+import GlassCard from "components/ui/GlassCard";
+import { useTheme } from "contexts/ThemeContext";
 const ExpenseItem = ({ expense, onEdit }) => {
   const { isDarkMode, themeClasses } = useTheme();
 

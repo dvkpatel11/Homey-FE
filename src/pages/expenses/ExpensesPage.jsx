@@ -1,11 +1,11 @@
+import ExpenseList from "components/features/expenses/ExpenseList";
+import ExpenseSummary from "components/features/expenses/ExpenseSummary";
+import FloatingActionButton from "components/ui/FloatingActionButton";
+import GlassButton from "components/ui/GlassButton";
+import GlassInput from "components/ui/GlassInput";
+import GlassModal from "components/ui/GlassModal";
+import { useExpenses } from "hooks/useExpenses";
 import { useState } from "react";
-import ExpenseList from "../components/features/expenses/ExpenseList";
-import ExpenseSummary from "../components/features/expenses/ExpenseSummary";
-import FloatingActionButton from "../components/ui/FloatingActionButton";
-import GlassButton from "../components/ui/GlassButton";
-import Input from "../components/ui/Input";
-import Modal from "../components/ui/Modal";
-import { useExpenses } from "../hooks/useExpenses";
 
 const ExpensesPage = () => {
   const { expenses, expenseSummary, addExpense } = useExpenses();
@@ -46,7 +46,7 @@ const ExpensesPage = () => {
 
       <FloatingActionButton onClick={() => setShowAddModal(true)} color="from-green-500 to-emerald-600" />
 
-      <Modal
+      <GlassModal
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
         title="Add Expense"
@@ -56,14 +56,14 @@ const ExpensesPage = () => {
           </GlassButton>
         }
       >
-        <Input
+        <GlassInput
           label="Description"
           value={newExpense.description}
           onChange={(e) => setNewExpense({ ...newExpense, description: e.target.value })}
           placeholder="Expense description"
         />
 
-        <Input
+        <GlassInput
           label="Amount"
           type="number"
           value={newExpense.amount}
@@ -81,7 +81,7 @@ const ExpensesPage = () => {
           <option value="Sarah">Sarah</option>
           <option value="Mike">Mike</option>
         </select>
-      </Modal>
+      </GlassModal>
     </div>
   );
 };

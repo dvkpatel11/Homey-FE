@@ -1,6 +1,6 @@
 import { Home, LogOut, Moon, Settings, Sun } from "lucide-react";
-import { useAuth } from "../../contexts/AuthContext";
-import { useTheme } from "../../contexts/ThemeContext";
+import { useAuth } from 'contexts/AuthContext';
+import { useTheme } from 'contexts/ThemeContext';
 
 const Header = () => {
   const { isDarkMode, toggleTheme, themeClasses } = useTheme();

@@ -1,4 +1,4 @@
-import * as mockData from "../../../mock-data/index.js";
+import * as mockData from 'mock-data/index.js';
 
 export const handleAuthMock = async (method, endpoint, data, options) => {
   // GET /api/profile - Get user profile

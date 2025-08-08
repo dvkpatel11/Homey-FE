@@ -1,7 +1,7 @@
 // // src/contexts/AuthContext.js - PRODUCTION VERSION
 // import { createContext, useContext, useEffect, useState } from "react";
 // import toast from "react-hot-toast";
-// import { authApi } from "../lib/api";
+// import { authApi } from 'lib/api';
 
 // const AuthContext = createContext();
 
