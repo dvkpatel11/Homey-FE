@@ -1,32 +1,30 @@
-import React, { useState } from 'react';
-import { ThemeProvider } from './contexts/ThemeContext';
-import { AuthProvider } from './contexts/AuthContext';
-import { DataProvider } from './contexts/DataContext';
-import { useAuth } from './contexts/AuthContext';
-import { useTheme } from './contexts/ThemeContext';
+import { useState } from "react";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { DataProvider } from "./contexts/DataContext";
+import { ThemeProvider, useTheme } from "./contexts/ThemeContext";
 
 // Layout Components
-import Header from './components/layout/Header';
-import Navigation from './components/layout/Navigation';
-import FloatingElements from './components/layout/FloatingElements';
+import FloatingElements from "./components/layout/FloatingElements";
+import Header from "./components/layout/Header";
+import Navigation from "./components/layout/Navigation";
 
 // Auth Components
-import AuthLayout from './components/features/auth/AuthLayout';
-import LoginForm from './components/features/auth/LoginForm';
+import AuthLayout from "./components/features/auth/AuthLayout";
+import LoginForm from "./components/features/auth/LoginForm";
 
 // Page Components
-import HomePage from './pages/HomePage';
-import TasksPage from './pages/TasksPage';
-import ExpensesPage from './pages/ExpensesPage';
-import AnnouncementsPage from './pages/AnnouncementsPage';
+import AnnouncementsPage from "./pages/AnnouncementsPage";
+import ExpensesPage from "./pages/ExpensesPage";
+import HomePage from "./pages/HomePage";
+import TasksPage from "./pages/TasksPage";
 
-import './index.css';
+import "./index.css";
 
 // Main App Content Component
 const AppContent = () => {
   const { isLoggedIn } = useAuth();
   const { themeClasses } = useTheme();
-  const [currentPage, setCurrentPage] = useState('home');
+  const [currentPage, setCurrentPage] = useState("home");
 
   // If not logged in, show auth layout
   if (!isLoggedIn) {
@@ -40,13 +38,13 @@ const AppContent = () => {
   // Render the current page based on navigation
   const renderCurrentPage = () => {
     switch (currentPage) {
-      case 'home':
+      case "home":
         return <HomePage />;
-      case 'tasks':
+      case "tasks":
         return <TasksPage />;
-      case 'expenses':
+      case "expenses":
         return <ExpensesPage />;
-      case 'announcements':
+      case "announcements":
         return <AnnouncementsPage />;
       default:
         return <HomePage />;
@@ -57,17 +55,12 @@ const AppContent = () => {
   return (
     <div className={`min-h-screen ${themeClasses.bgClasses} relative overflow-hidden`}>
       <FloatingElements />
-      
-      <Header />
-      
-      <div className="p-6 pb-32 relative z-10">
-        {renderCurrentPage()}
-      </div>
 
-      <Navigation 
-        currentPage={currentPage} 
-        setCurrentPage={setCurrentPage} 
-      />
+      <Header />
+
+      <div className="p-6 pb-32 relative z-10">{renderCurrentPage()}</div>
+
+      <Navigation currentPage={currentPage} setCurrentPage={setCurrentPage} />
     </div>
   );
 };
