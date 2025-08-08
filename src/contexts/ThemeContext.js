@@ -1,49 +1,41 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 
 const ThemeContext = createContext();
 
 export const useTheme = () => {
   const context = useContext(ThemeContext);
-  if (!context) {
-    throw new Error("useTheme must be used within a ThemeProvider");
-  }
+  if (!context) throw new Error("useTheme must be used within a ThemeProvider");
   return context;
 };
 
 export const ThemeProvider = ({ children }) => {
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    try {
+      return localStorage.getItem("theme") === "dark" || false;
+    } catch {
+      return false;
+    }
+  });
 
-  const toggleTheme = () => {
-    setIsDarkMode(!isDarkMode);
-  };
+  useEffect(() => {
+    // apply root class so .dark CSS block works
+    document.documentElement.classList.toggle("dark", isDarkMode);
+    try {
+      localStorage.setItem("theme", isDarkMode ? "dark" : "light");
+    } catch {}
+  }, [isDarkMode]);
 
-  const getThemeClasses = () => ({
+  const toggleTheme = () => setIsDarkMode((v) => !v);
+
+  // use semantic class names that map to CSS utilities defined in index.css
+  const themeClasses = {
     bgClasses: isDarkMode
       ? "bg-gradient-to-br from-gray-950 via-slate-900 to-gray-950"
       : "bg-gradient-to-br from-slate-100 via-gray-50 to-slate-100",
+    primaryGlass: "glass glass-hoverable glass-strong",
+    cardGlass: "glass glass-inset",
+    inputGlass: "glass", // layer focus styles in component-level classes
+  };
 
-    primaryGlass: isDarkMode
-      ? "bg-gradient-to-br from-white/[0.12] to-white/[0.08] backdrop-blur-3xl border border-white/[0.15] shadow-2xl shadow-black/60 ring-1 ring-inset ring-white/[0.1]"
-      : "bg-gradient-to-br from-white/80 to-white/60 backdrop-blur-3xl border border-white/70 shadow-2xl shadow-black/20 ring-1 ring-inset ring-white/50",
-
-    cardGlass: isDarkMode
-      ? "bg-gradient-to-br from-white/[0.08] to-white/[0.04] backdrop-blur-2xl border border-white/[0.12] shadow-xl shadow-black/40 ring-1 ring-inset ring-white/[0.05]"
-      : "bg-gradient-to-br from-white/70 to-white/50 backdrop-blur-2xl border border-white/60 shadow-xl shadow-black/10 ring-1 ring-inset ring-white/40",
-
-    inputGlass: isDarkMode
-      ? "bg-gradient-to-br from-white/[0.06] to-white/[0.03] backdrop-blur-xl border border-white/[0.15] focus:border-white/30 focus:from-white/[0.1] focus:to-white/[0.06] focus:shadow-lg focus:shadow-black/30 focus:ring-2 focus:ring-white/[0.1]"
-      : "bg-gradient-to-br from-white/60 to-white/40 backdrop-blur-xl border border-white/50 focus:border-gray-300 focus:from-white/80 focus:to-white/60 focus:ring-2 focus:ring-gray-200/50",
-  });
-
-  return (
-    <ThemeContext.Provider
-      value={{
-        isDarkMode,
-        toggleTheme,
-        themeClasses: getThemeClasses(),
-      }}
-    >
-      {children}
-    </ThemeContext.Provider>
-  );
+  return <ThemeContext.Provider value={{ isDarkMode, toggleTheme, themeClasses }}>{children}</ThemeContext.Provider>;
 };
