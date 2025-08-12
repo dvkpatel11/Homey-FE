@@ -1,7 +1,6 @@
-import GlassCard from "components/ui/GlassCard";
-import GlassInput from "components/ui/GlassInput";
-import { useTheme } from "contexts/ThemeContext";
 import { Search } from "lucide-react";
+import GlassCard from "../../ui/GlassCard.jsx";
+import GlassInput from "../../ui/GlassInput.jsx";
 
 const TaskFilters = ({ searchQuery, setSearchQuery, filter, setFilter }) => {
   const { isDarkMode } = useTheme();

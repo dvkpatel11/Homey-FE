@@ -1,6 +1,5 @@
-import GlassCard from "components/ui/GlassCard";
-import { useTheme } from "contexts/ThemeContext";
 import { DollarSign } from "lucide-react";
+import GlassCard from "../../ui/GlassCard.jsx";
 const ExpenseSummary = ({ summary }) => {
   const { isDarkMode } = useTheme();
 

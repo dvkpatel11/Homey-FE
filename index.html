@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <!-- Mobile-first viewport settings -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+    <!-- App metadata -->
+    <title>Homey - Household Management</title>
+    <meta
+      name="description"
+      content="Modern household management app with beautiful glassmorphic design. Manage tasks, expenses, and family coordination effortlessly."
+    />
+    <meta
+      name="keywords"
+      content="household management, family app, task management, expense tracking, home organization"
+    />
+    <meta name="author" content="Homey App Team" />
+
+    <!-- PWA settings -->
+    <meta name="theme-color" content="#7c3aed" />
+    <meta name="background-color" content="#0f172a" />
+    <meta name="display" content="standalone" />
+    <meta name="orientation" content="portrait-primary" />
+
+    <!-- iOS PWA settings -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Homey" />
+
+    <!-- Prevent zoom on iOS -->
+    <meta name="format-detection" content="telephone=no" />
+
+    <!-- Preconnect to external resources -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- Icons -->
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- Splash screens for iOS -->
+    <link
+      rel="apple-touch-startup-image"
+      media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)"
+      href="/splash/iphone6-750x1334.png"
+    />
+    <link
+      rel="apple-touch-startup-image"
+      media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)"
+      href="/splash/iphonex-1125x2436.png"
+    />
+    <link
+      rel="apple-touch-startup-image"
+      media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)"
+      href="/splash/iphonexr-828x1792.png"
+    />
+
+    <!-- Performance optimizations -->
+    <link rel="dns-prefetch" href="//fonts.googleapis.com" />
+    <link rel="preload" href="/fonts/inter-var.woff2" as="font" type="font/woff2" crossorigin />
+
+    <!-- Critical CSS inlined for faster rendering -->
+    <style>
+      /* Critical above-the-fold styles */
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html {
+        height: 100%;
+        overflow-x: hidden;
+        -webkit-text-size-adjust: 100%;
+        -ms-text-size-adjust: 100%;
+      }
+
+      body {
+        height: 100%;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        color: rgba(255, 255, 255, 0.9);
+        overflow-x: hidden;
+        overscroll-behavior: none;
+      }
+
+      #root {
+        height: 100%;
+        min-height: 100vh;
+        min-height: 100dvh; /* Dynamic viewport height */
+      }
+
+      @keyframes spin {
+        0% {
+          transform: translate(-50%, -50%) rotate(0deg);
+        }
+        100% {
+          transform: translate(-50%, -50%) rotate(360deg);
+        }
+      }
+
+      /* Safe area support */
+      @supports (padding: env(safe-area-inset-top)) {
+        body {
+          padding-top: env(safe-area-inset-top);
+          padding-bottom: env(safe-area-inset-bottom);
+          padding-left: env(safe-area-inset-left);
+          padding-right: env(safe-area-inset-right);
+        }
+      }
+
+      /* Prevent flash of unstyled content */
+      .no-js #root {
+        display: none;
+      }
+    </style>
+
+    <!-- No JS fallback -->
+    <noscript> </noscript>
+  </head>
+
+  <body class="no-js">
+    <!-- App root -->
+    <div id="root"></div>
+
+    <!-- Remove no-js class -->
+    <script>
+      document.body.classList.remove("no-js");
+    </script>
+
+    <!-- Vite entry point -->
+    <script type="module" src="/src/main.jsx"></script>
+
+    <!-- NoScript fallback -->
+    <noscript>
+      <div
+        style="
+          padding: 2rem;
+          text-align: center;
+          background: #1e293b;
+          color: white;
+          min-height: 100vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-direction: column;
+        "
+      >
+        <h1 style="margin-bottom: 1rem; font-size: 2rem">Homey</h1>
+        <p style="margin-bottom: 1rem">This app requires JavaScript to function properly.</p>
+        <p>Please enable JavaScript in your browser settings and refresh the page.</p>
+      </div>
+    </noscript>
+  </body>
+</html>

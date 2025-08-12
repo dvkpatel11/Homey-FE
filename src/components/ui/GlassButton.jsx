@@ -1,5 +1,3 @@
-import { useTheme } from 'contexts/ThemeContext';
-
 const GlassButton = ({
   children,
   variant = "primary",

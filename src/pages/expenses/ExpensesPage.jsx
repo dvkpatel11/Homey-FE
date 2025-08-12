@@ -1,11 +1,11 @@
-import ExpenseList from "components/features/expenses/ExpenseList";
-import ExpenseSummary from "components/features/expenses/ExpenseSummary";
-import FloatingActionButton from "components/ui/FloatingActionButton";
-import GlassButton from "components/ui/GlassButton";
-import GlassInput from "components/ui/GlassInput";
-import GlassModal from "components/ui/GlassModal";
-import { useExpenses } from "hooks/useExpenses";
 import { useState } from "react";
+import ExpenseList from "../../components/features/expenses/ExpenseList.jsx";
+import ExpenseSummary from "../../components/features/expenses/ExpenseSummary.jsx";
+import FloatingActionButton from "../../components/ui/FloatingActionButton.jsx";
+import GlassButton from "../../components/ui/GlassButton.jsx";
+import GlassInput from "../../components/ui/GlassInput.jsx";
+import GlassModal from "../../components/ui/GlassModal.jsx";
+import { useExpenses } from "../../hooks/useExpenses.js";
 
 const ExpensesPage = () => {
   const { expenses, expenseSummary, addExpense } = useExpenses();

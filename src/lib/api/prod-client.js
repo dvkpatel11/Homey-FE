@@ -1,4 +1,4 @@
-import API_CONFIG from 'lib/config/api.js';
+import API_CONFIG from "../../lib/config/api.js";
 
 // Production API client using fetch
 export const prodApiCall = async (method, endpoint, options = {}) => {

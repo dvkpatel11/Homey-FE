@@ -1,9 +1,8 @@
-import AnnouncementList from "components/features/announcements/AnnouncementList";
-import FloatingActionButton from "components/ui/FloatingActionButton";
-import GlassButton from "components/ui/GlassButton";
-import GlassModal from "components/ui/GlassModal";
-import { useAuth } from "contexts/AuthContext";
 import { useState } from "react";
+import AnnouncementList from "../../components/features/announcements/AnnouncementList.jsx";
+import FloatingActionButton from "../../components/ui/FloatingActionButton.jsx";
+import GlassButton from "../../components/ui/GlassButton.jsx";
+import GlassModal from "../../components/ui/GlassModal.jsx";
 
 const AnnouncementsPage = () => {
   const announcements = [

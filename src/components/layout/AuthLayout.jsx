@@ -1,5 +1,4 @@
-import FloatingElements from "components/layout/FloatingElements";
-import { useTheme } from "contexts/ThemeContext";
+import FloatingElements from "./FloatingElements.jsx";
 
 const AuthLayout = ({ children }) => {
   const { themeClasses } = useTheme();

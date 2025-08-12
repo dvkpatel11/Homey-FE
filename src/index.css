@@ -2,25 +2,96 @@
 @tailwind components;
 @tailwind utilities;
 
-/* theme variables, fallback colors */
+/* Enhanced CSS Variables for runtime theming */
 :root {
+  /* Primary theme colors */
   --color-primary: #7c3aed;
+  --color-primary-50: #f3f0ff;
+  --color-primary-100: #e9e2ff;
+  --color-primary-600: #7c3aed;
+  --color-primary-700: #6d28d9;
+
+  /* Glass morphism variables */
   --glass-bg: rgba(255, 255, 255, 0.06);
   --glass-border: rgba(255, 255, 255, 0.12);
   --glass-blur: 20px;
   --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
   --glass-inset-1: rgba(255, 255, 255, 0.2);
   --glass-inset-2: rgba(255, 255, 255, 0.1);
+
+  /* Surface colors for layering */
+  --surface-primary: rgba(255, 255, 255, 0.05);
+  --surface-secondary: rgba(255, 255, 255, 0.03);
+  --surface-accent: rgba(124, 58, 237, 0.1);
+
+  /* Text colors */
+  --text-primary: rgba(255, 255, 255, 0.95);
+  --text-secondary: rgba(255, 255, 255, 0.8);
+  --text-muted: rgba(255, 255, 255, 0.6);
+
+  /* Status colors */
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: #3b82f6;
 }
 
-/* dark theme override — toggled via .dark on <html> */
+/* Dark theme overrides */
 .dark {
   --glass-bg: rgba(255, 255, 255, 0.04);
   --glass-border: rgba(255, 255, 255, 0.08);
   --color-primary: #8b5cf6;
+  --surface-primary: rgba(255, 255, 255, 0.04);
+  --surface-secondary: rgba(255, 255, 255, 0.02);
 }
 
-/* Tailwind utilities for glassmorphism */
+/* Base styles for mobile-first */
+@layer base {
+  * {
+    /* Prevent iOS zoom on input focus */
+    @apply touch-manipulation;
+  }
+
+  html {
+    /* Prevent overscroll bounce on iOS */
+    overscroll-behavior: none;
+    /* Smooth scrolling */
+    scroll-behavior: smooth;
+  }
+
+  body {
+    /* Prevent text size adjust on orientation change */
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    /* Better font rendering */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* Prevent select on mobile */
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+
+  /* Allow text selection for readable content */
+  p,
+  span,
+  div[role="text"],
+  [contenteditable] {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+  }
+
+  /* Focus styles for accessibility */
+  :focus-visible {
+    @apply outline-none ring-2 ring-primary-50 ring-offset-2 ring-offset-transparent;
+  }
+}
+
+/* Enhanced glassmorphism utilities */
 @layer utilities {
   .glass {
     background: linear-gradient(135deg, var(--glass-bg), rgba(255, 255, 255, 0.03));
@@ -29,40 +100,148 @@
     border: 1px solid var(--glass-border);
     box-shadow: var(--glass-shadow);
     border-radius: 1rem;
+    position: relative;
   }
+
   .glass-strong {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04));
     border-radius: 1.25rem;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
   }
+
+  .glass-subtle {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  }
+
   .glass-hoverable {
     transition:
-      transform 0.18s ease,
-      box-shadow 0.18s ease;
+      transform 0.18s cubic-bezier(0.4, 0, 0.2, 1),
+      box-shadow 0.18s cubic-bezier(0.4, 0, 0.2, 1),
+      border-color 0.18s cubic-bezier(0.4, 0, 0.2, 1);
   }
+
   .glass-inset {
     box-shadow:
       0 8px 32px rgba(0, 0, 0, 0.3),
       inset 0 1px 0 var(--glass-inset-1),
       inset 0 -1px 0 var(--glass-inset-2);
   }
-}
 
-/* reduce blur on small screens for performance */
-@media (max-width: 640px) {
-  :root {
-    --glass-blur: 8px;
+  .glass-lift:hover {
+    transform: translateY(-2px) scale(1.01);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .glass-lift:active {
+    transform: translateY(-1px) scale(1.005);
+  }
+
+  /* Glass surface variants */
+  .glass-surface-1 {
+    background: var(--surface-primary);
+  }
+
+  .glass-surface-2 {
+    background: var(--surface-secondary);
+  }
+
+  .glass-accent {
+    background: linear-gradient(135deg, var(--surface-accent), rgba(124, 58, 237, 0.05));
+  }
+
+  /* Text utilities */
+  .text-glass {
+    color: var(--text-primary);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  }
+
+  .text-glass-secondary {
+    color: var(--text-secondary);
+  }
+
+  .text-glass-muted {
+    color: var(--text-muted);
   }
 }
 
-/* motion preference respect */
+/* Mobile-specific optimizations */
+@media (max-width: 640px) {
+  :root {
+    /* Reduce blur for better performance on mobile */
+    --glass-blur: 8px;
+    /* Reduce shadows for performance */
+    --glass-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  }
+
+  .glass-hoverable {
+    /* Disable hover effects on mobile */
+    transition: none;
+  }
+
+  .glass-lift:hover {
+    transform: none;
+    box-shadow: var(--glass-shadow);
+  }
+}
+
+/* Reduced motion preferences */
 @media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
   .glass-hoverable {
     transition: none !important;
+  }
+
+  .glass-lift:hover {
     transform: none !important;
   }
 }
 
-/* subtle utility for hover lift (apply together with glass-hoverable) */
-.glass-lift:hover {
-  transform: translateY(-4px) scale(1.02);
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --glass-border: rgba(255, 255, 255, 0.3);
+    --text-primary: #ffffff;
+    --text-secondary: rgba(255, 255, 255, 0.9);
+  }
+}
+
+/* Safe area support for devices with notches */
+@supports (padding: env(safe-area-inset-top)) {
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* Loading states */
+@keyframes shimmer {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 200px 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
 }

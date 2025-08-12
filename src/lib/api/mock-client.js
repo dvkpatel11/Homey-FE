@@ -1,4 +1,4 @@
-import API_CONFIG from 'lib/config/api.js';
+import API_CONFIG from "../../lib/config/api.js";
 import { handleAuthMock } from "./mock-handlers/auth-mock.js";
 import { handleChatMock } from "./mock-handlers/chat-mock.js";
 import { handleExpenseMock } from "./mock-handlers/expense-mock.js";

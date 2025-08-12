@@ -1,11 +1,11 @@
-import TaskFilters from "components/features/tasks/TaskFilters";
-import TaskList from "components/features/tasks/TaskList";
-import FloatingActionButton from "components/ui/FloatingActionButton";
-import GlassButton from "components/ui/GlassButton";
-import GlassInput from "components/ui/GlassInput";
-import GlassModal from "components/ui/GlassModal";
-import { useTasks } from "hooks/useTasks";
 import { useState } from "react";
+import TaskFilters from "../../components/features/tasks/TaskFilters.jsx";
+import TaskList from "../../components/features/tasks/TaskList.jsx";
+import FloatingActionButton from "../../components/ui/FloatingActionButton.jsx";
+import GlassButton from "../../components/ui/GlassButton.jsx";
+import GlassInput from "../../components/ui/GlassInput.jsx";
+import GlassModal from "../../components/ui/GlassModal.jsx";
+import { useTasks } from "../../hooks/useTasks.js";
 
 const TasksPage = () => {
   const { tasks, searchQuery, setSearchQuery, filter, setFilter, addTask, toggleTaskCompletion } = useTasks();

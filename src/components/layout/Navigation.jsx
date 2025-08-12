@@ -1,5 +1,4 @@
 import { CheckSquare, DollarSign, Home, MessageSquare } from "lucide-react";
-import { useTheme } from 'contexts/ThemeContext';
 
 const Navigation = ({ currentPage, setCurrentPage }) => {
   const { themeClasses, isDarkMode } = useTheme();

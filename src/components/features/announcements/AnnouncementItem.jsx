@@ -1,9 +1,7 @@
-import { default as GlassButton } from "components/ui/GlassButton";
-import GlassCard from "components/ui/GlassCard";
-import { useAuth } from "contexts/AuthContext";
-import { useTheme } from "contexts/ThemeContext";
 import { Send, User } from "lucide-react";
 import { useState } from "react";
+import GlassButton from "../../ui/GlassButton.jsx";
+import GlassCard from "../../ui/GlassCard.jsx";
 const AnnouncementItem = ({ announcement, onVote, onAddComment }) => {
   const { isDarkMode, themeClasses } = useTheme();
   const { currentUser } = useAuth();

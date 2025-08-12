@@ -1,5 +1,3 @@
-import { useTheme } from 'contexts/ThemeContext';
-
 const FloatingElements = () => {
   const { isDarkMode } = useTheme();
 

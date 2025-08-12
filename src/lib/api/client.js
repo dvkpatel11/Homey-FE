@@ -1,4 +1,4 @@
-import API_CONFIG from 'lib/config/api.js';
+import API_CONFIG from "../../lib/config/api.js";
 import { mockApiCall } from "./mock-client.js";
 import { prodApiCall } from "./prod-client.js";
 

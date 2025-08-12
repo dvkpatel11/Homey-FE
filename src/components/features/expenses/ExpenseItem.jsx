@@ -1,5 +1,4 @@
-import GlassCard from "components/ui/GlassCard";
-import { useTheme } from "contexts/ThemeContext";
+import GlassCard from "../../ui/GlassCard.jsx";
 const ExpenseItem = ({ expense, onEdit }) => {
   const { isDarkMode, themeClasses } = useTheme();
 
