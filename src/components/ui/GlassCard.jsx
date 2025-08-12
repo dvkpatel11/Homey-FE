@@ -1,3 +1,5 @@
+import { useTheme } from "../../contexts/ThemeContext.jsx";
+
 const GlassCard = ({ children, className = "", hover = true }) => {
   const { themeClasses } = useTheme();
 

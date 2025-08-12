@@ -1,5 +1,4 @@
 import AnnouncementItem from "./AnnouncementItem";
-
 const AnnouncementList = ({ announcements, onVote, onAddComment }) => {
   if (announcements.length === 0) {
     return (

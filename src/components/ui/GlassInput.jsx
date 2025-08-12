@@ -1,3 +1,5 @@
+import { useTheme } from "../../contexts/ThemeContext.jsx";
+
 const GlassInput = ({
   label,
   placeholder,

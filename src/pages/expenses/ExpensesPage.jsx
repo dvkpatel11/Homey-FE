@@ -6,7 +6,6 @@ import GlassButton from "../../components/ui/GlassButton.jsx";
 import GlassInput from "../../components/ui/GlassInput.jsx";
 import GlassModal from "../../components/ui/GlassModal.jsx";
 import { useExpenses } from "../../hooks/useExpenses.js";
-
 const ExpensesPage = () => {
   const { expenses, expenseSummary, addExpense } = useExpenses();
   const [showAddModal, setShowAddModal] = useState(false);

@@ -45,7 +45,7 @@
     "workbox-window": "^7.1.0"
   },
   "scripts": {
-    "dev": "vite --host",
+    "dev": "vite --host 127.0.0.1",
     "build": "vite build && npm run analyze",
     "preview": "vite preview --host",
     "analyze": "npx vite-bundle-analyzer dist",

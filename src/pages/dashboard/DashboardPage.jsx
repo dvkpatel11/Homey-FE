@@ -1,5 +1,7 @@
 import { CheckSquare, DollarSign, MessageSquare } from "lucide-react";
 import GlassCard from "../../components/ui/GlassCard.jsx"; // ← FIXED: Now uses GlassCard
+import { useHousehold } from "../../contexts/HouseholdContext.jsx";
+import { useTheme } from "../../contexts/ThemeContext.jsx";
 import { getCurrentWeekDates } from "../../lib/utils/dateHelpers.js";
 
 const DashboardPage = () => {

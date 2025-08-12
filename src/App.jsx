@@ -115,19 +115,18 @@ const AppContent = () => {
 
   // Render the current page based on navigation
   const renderCurrentPage = () => {
-    const pageProps = { key: currentPage }; // Force remount on page change
-
+    // Pass key directly, not through spread
     switch (currentPage) {
       case "dashboard":
-        return <DashboardPage {...pageProps} />;
+        return <DashboardPage key={currentPage} />;
       case "tasks":
-        return <TasksPage {...pageProps} />;
+        return <TasksPage key={currentPage} />;
       case "expenses":
-        return <ExpensesPage {...pageProps} />;
+        return <ExpensesPage key={currentPage} />;
       case "announcements":
-        return <AnnouncementsPage {...pageProps} />;
+        return <AnnouncementsPage key={currentPage} />;
       default:
-        return <DashboardPage {...pageProps} />;
+        return <DashboardPage key={currentPage} />;
     }
   };
 

@@ -1,4 +1,5 @@
 import { ArrowLeft } from "lucide-react";
+import { useTheme } from "../../contexts/ThemeContext.jsx";
 import GlassCard from "./GlassCard"; // ← FIXED: Now imports GlassCard
 
 const GlassModal = ({ isOpen, onClose, title, children, footer }) => {

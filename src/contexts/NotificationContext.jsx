@@ -2,6 +2,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { notifications as mockNotifications } from "../mock-data/notifications";
+import { useAuth } from "./AuthContext.jsx";
 
 const NotificationContext = createContext();
 

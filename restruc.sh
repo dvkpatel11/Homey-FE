@@ -1,42 +1,105 @@
 #!/bin/bash
 
-echo "🧹 Cleaning up backup files..."
+# Fix Missing Hook Imports
+# This script adds the missing import statements to your files
 
-# Show what we're about to delete
-echo "📋 Found these backup files:"
-find . -name "*.bak*" -type f | sort
+echo "🔧 Fixing missing hook imports..."
 
-echo ""
-read -p "❓ Delete all these backup files? (y/N): " -n 1 -r
-echo ""
+# Files that need useTheme import (relative to project root)
+THEME_FILES=(
+    "src/components/features/tasks/TaskCard.jsx"
+    "src/components/features/tasks/TaskFilters.jsx"
+    "src/components/features/expenses/ExpenseSummary.jsx"
+    "src/components/features/expenses/ExpenseItem.jsx"
+    "src/components/layout/AuthLayout.jsx"
+)
 
-if [[ $REPLY =~ ^[Yy]$ ]]; then
-    # Count files before deletion
-    count=$(find . -name "*.bak*" -type f | wc -l)
+# Files that need useAuth import
+AUTH_FILES=(
+    "src/components/features/auth/LoginForm.jsx"
+)
+
+# Function to add import if not exists
+add_import_if_missing() {
+    local file="$1"
+    local import_line="$2"
+    local hook_name="$3"
     
-    if [[ $count -gt 0 ]]; then
-        echo "🗑️  Deleting $count backup files..."
-        
-        # Delete all .bak files (including .bak.2, .bak.3, etc.)
-        find . -name "*.bak*" -type f -delete
-        
-        echo "✅ Deleted $count backup files!"
-    else
-        echo "ℹ️  No backup files found to delete."
+    if [ ! -f "$file" ]; then
+        echo "❌ File not found: $file"
+        return 1
     fi
-else
-    echo "❌ Cleanup cancelled. Backup files preserved."
-fi
+    
+    # Check if import already exists
+    if grep -q "$hook_name" "$file"; then
+        echo "✅ $file already has $hook_name import"
+        return 0
+    fi
+    
+    # Find the last import line and add after it
+    if grep -q "^import" "$file"; then
+        # Get line number of last import
+        last_import_line=$(grep -n "^import" "$file" | tail -1 | cut -d: -f1)
+        
+        # Create temp file with new import added
+        {
+            head -n "$last_import_line" "$file"
+            echo "$import_line"
+            tail -n +"$((last_import_line + 1))" "$file"
+        } > "${file}.tmp"
+        
+        mv "${file}.tmp" "$file"
+        echo "✅ Added $hook_name import to $file"
+    else
+        # No imports exist, add at the top
+        {
+            echo "$import_line"
+            echo ""
+            cat "$file"
+        } > "${file}.tmp"
+        
+        mv "${file}.tmp" "$file"
+        echo "✅ Added $hook_name import to $file (at top)"
+    fi
+}
+
+# Add useTheme imports
+for file in "${THEME_FILES[@]}"; do
+    # Determine correct path based on file location
+    case "$file" in
+        *"/features/"*)
+            import_line='import { useTheme } from "../../../contexts/ThemeContext.jsx";'
+            ;;
+        *"/layout/"*)
+            import_line='import { useTheme } from "../../contexts/ThemeContext.jsx";'
+            ;;
+        *)
+            import_line='import { useTheme } from "../../contexts/ThemeContext.jsx";'
+            ;;
+    esac
+    
+    add_import_if_missing "$file" "$import_line" "useTheme"
+done
+
+# Add useAuth imports
+for file in "${AUTH_FILES[@]}"; do
+    # LoginForm is in features/auth, so needs ../../../
+    import_line='import { useAuth } from "../../../contexts/AuthContext.jsx";'
+    add_import_if_missing "$file" "$import_line" "useAuth"
+    
+    # Also add useTheme to LoginForm since it needs both
+    theme_import='import { useTheme } from "../../../contexts/ThemeContext.jsx";'
+    add_import_if_missing "$file" "$theme_import" "useTheme"
+done
 
 echo ""
-echo "📊 Remaining backup files:"
-remaining=$(find . -name "*.bak*" -type f | wc -l)
-if [[ $remaining -eq 0 ]]; then
-    echo "  ✅ No backup files remaining"
-else
-    echo "  📁 $remaining backup files still present"
-    find . -name "*.bak*" -type f | head -5
-    if [[ $remaining -gt 5 ]]; then
-        echo "  ... and $((remaining - 5)) more"
-    fi
-fi
+echo "🎉 Import fixes complete!"
+echo ""
+echo "📋 Summary of changes:"
+echo "   • Added useTheme imports to ${#THEME_FILES[@]} files"
+echo "   • Added useAuth import to ${#AUTH_FILES[@]} files"
+echo ""
+echo "🧪 Next steps:"
+echo "   1. npm run dev"
+echo "   2. Check browser console for any remaining errors"
+echo "   3. Run ./check-hooks.sh again to verify fixes"

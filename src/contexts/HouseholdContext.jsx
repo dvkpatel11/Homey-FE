@@ -3,6 +3,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import toast from "react-hot-toast";
 import { households as mockHouseholds } from "../mock-data/households";
 import { users as mockUsers } from "../mock-data/users";
+import { useAuth } from "./AuthContext.jsx";
 
 const HouseholdContext = createContext();
 

@@ -1,5 +1,7 @@
 import { Send, User } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "../../../contexts/AuthContext.jsx";
+import { useTheme } from "../../../contexts/ThemeContext.jsx";
 import GlassButton from "../../ui/GlassButton.jsx";
 import GlassCard from "../../ui/GlassCard.jsx";
 const AnnouncementItem = ({ announcement, onVote, onAddComment }) => {

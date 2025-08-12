@@ -3,7 +3,7 @@ import AnnouncementList from "../../components/features/announcements/Announceme
 import FloatingActionButton from "../../components/ui/FloatingActionButton.jsx";
 import GlassButton from "../../components/ui/GlassButton.jsx";
 import GlassModal from "../../components/ui/GlassModal.jsx";
-
+import { useAuth } from "../../contexts/AuthContext.jsx";
 const AnnouncementsPage = () => {
   const announcements = [
     { id: 1, title: "Meeting at 7 PM", comments: [], votes: 0 },
