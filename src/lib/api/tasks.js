@@ -1,64 +1,106 @@
-import { apiClient, buildQuery } from "./client.js";
+import client from './client.js';
 
-export const taskApi = {
-  // GET /api/households/:id/tasks - List household tasks
-  getHouseholdTasks: (householdId, filters = {}) => {
-    const query = buildQuery(filters);
-    return apiClient.get(`/api/households/${householdId}/tasks${query ? `?${query}` : ""}`);
+export const tasksAPI = {
+  // Get household tasks
+  async getTasks(householdId, filters = {}) {
+    const params = new URLSearchParams();
+    
+    if (filters.status) params.append('status', filters.status);
+    if (filters.assignee) params.append('assignee', filters.assignee);
+    if (filters.due_date) params.append('due_date', filters.due_date);
+    if (filters.is_recurring !== undefined) params.append('is_recurring', filters.is_recurring);
+    
+    const queryString = params.toString();
+    const url = queryString 
+      ? `/api/households/${householdId}/tasks?${queryString}`
+      : `/api/households/${householdId}/tasks`;
+      
+    const response = await client.get(url);
+    return response.data;
   },
 
-  // POST /api/households/:id/tasks - Create task (admin only)
-  createTask: (householdId, data) => {
-    return apiClient.post(`/api/households/${householdId}/tasks`, data);
+  // Create new task
+  async createTask(householdId, data) {
+    const response = await client.post(`/api/households/${householdId}/tasks`, data);
+    return response.data;
   },
 
-  // GET /api/tasks/:id - Get task details
-  getTask: (id) => {
-    return apiClient.get(`/api/tasks/${id}`);
+  // Get task by ID
+  async getTask(taskId) {
+    const response = await client.get(`/api/tasks/${taskId}`);
+    return response.data;
   },
 
-  // PUT /api/tasks/:id - Update task (admin only)
-  updateTask: (id, data) => {
-    return apiClient.put(`/api/tasks/${id}`, data);
+  // Update task
+  async updateTask(taskId, data) {
+    const response = await client.put(`/api/tasks/${taskId}`, data);
+    return response.data;
   },
 
-  // DELETE /api/tasks/:id - Delete task (admin only)
-  deleteTask: (id) => {
-    return apiClient.delete(`/api/tasks/${id}`);
+  // Delete task
+  async deleteTask(taskId) {
+    const response = await client.delete(`/api/tasks/${taskId}`);
+    return response.data;
   },
 
-  // POST /api/tasks/:id/assign - Assign task to user(s)
-  assignTask: (id, userIds) => {
-    return apiClient.post(`/api/tasks/${id}/assign`, { user_ids: userIds });
+  // Assign task to users
+  async assignTask(taskId, userIds) {
+    const response = await client.post(`/api/tasks/${taskId}/assign`, {
+      assigned_to: userIds,
+    });
+    return response.data;
   },
 
-  // PUT /api/tasks/:id/complete - Mark task as completed
-  completeTask: (id) => {
-    return apiClient.put(`/api/tasks/${id}/complete`);
+  // Mark task as completed
+  async completeTask(taskId) {
+    const response = await client.put(`/api/tasks/${taskId}/complete`);
+    return response.data;
   },
 
-  // PUT /api/tasks/:id/uncomplete - Mark task as incomplete
-  uncompleteTask: (id) => {
-    return apiClient.put(`/api/tasks/${id}/uncomplete`);
+  // Mark task as incomplete
+  async uncompleteTask(taskId) {
+    const response = await client.put(`/api/tasks/${taskId}/uncomplete`);
+    return response.data;
   },
 
-  // POST /api/tasks/:id/swap/request - Request task swap
-  requestTaskSwap: (id, data) => {
-    return apiClient.post(`/api/tasks/${id}/swap/request`, data);
+  // Request task swap
+  async requestSwap(taskId, data) {
+    const response = await client.post(`/api/tasks/${taskId}/swap/request`, data);
+    return response.data;
   },
 
-  // PUT /api/task-swaps/:id/accept - Accept swap request
-  acceptTaskSwap: (swapId) => {
-    return apiClient.put(`/api/task-swaps/${swapId}/accept`);
+  // Accept swap request
+  async acceptSwap(swapId) {
+    const response = await client.put(`/api/task-swaps/${swapId}/accept`);
+    return response.data;
   },
 
-  // PUT /api/task-swaps/:id/decline - Decline swap request
-  declineTaskSwap: (swapId) => {
-    return apiClient.put(`/api/task-swaps/${swapId}/decline`);
+  // Decline swap request
+  async declineSwap(swapId) {
+    const response = await client.put(`/api/task-swaps/${swapId}/decline`);
+    return response.data;
   },
 
-  // GET /api/households/:id/task-swaps - List pending swaps
-  getTaskSwaps: (householdId) => {
-    return apiClient.get(`/api/households/${householdId}/task-swaps`);
+  // Get pending swaps for household
+  async getSwaps(householdId) {
+    const response = await client.get(`/api/households/${householdId}/task-swaps`);
+    return response.data;
+  },
+
+  // Batch operations
+  async batchCompleteTask(taskIds) {
+    const response = await client.post('/api/tasks/batch/complete', {
+      task_ids: taskIds,
+    });
+    return response.data;
+  },
+
+  async batchAssignTasks(assignments) {
+    const response = await client.post('/api/tasks/batch/assign', {
+      assignments, // [{ task_id, user_ids }]
+    });
+    return response.data;
   },
 };
+
+export default tasksAPI;

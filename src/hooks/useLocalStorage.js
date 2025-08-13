@@ -1,141 +1,193 @@
-// src/hooks/useLocalStorage.js - Mobile-Optimized Local Storage Hook
-import { useCallback, useEffect, useState } from "react";
+import { useState, useEffect, useCallback } from 'react';
 
-/**
- * Enhanced localStorage hook with error handling and mobile optimization
- * @param {string} key - localStorage key
- * @param {any} initialValue - default value if key doesn't exist
- * @param {Object} options - configuration options
- * @returns {[value, setValue, removeValue, error]}
- */
-export function useLocalStorage(key, initialValue, options = {}) {
-  const {
-    serialize = JSON.stringify,
-    deserialize = JSON.parse,
-    syncAcrossTabs = false,
-    onError = console.error,
-  } = options;
-
+// Custom hook for localStorage with cross-tab synchronization
+export const useLocalStorage = (key, initialValue) => {
+  // State to store our value
   const [storedValue, setStoredValue] = useState(() => {
-    if (typeof window === "undefined") {
-      return initialValue;
-    }
-
     try {
+      // Get from local storage by key
       const item = window.localStorage.getItem(key);
-      if (item === null) {
-        return initialValue;
-      }
-      return deserialize(item);
+      // Parse stored json or if none return initialValue
+      return item ? JSON.parse(item) : initialValue;
     } catch (error) {
-      onError(`Error reading localStorage key "${key}":`, error);
+      console.error(`Error reading localStorage key "${key}":`, error);
       return initialValue;
     }
   });
 
-  const [error, setError] = useState(null);
-
-  const setValue = useCallback(
-    (value) => {
-      try {
-        setError(null);
-
-        // Allow value to be a function so we have the same API as useState
-        const valueToStore = value instanceof Function ? value(storedValue) : value;
-
-        setStoredValue(valueToStore);
-
-        if (typeof window !== "undefined") {
-          if (valueToStore === undefined) {
-            window.localStorage.removeItem(key);
-          } else {
-            window.localStorage.setItem(key, serialize(valueToStore));
-          }
-        }
-      } catch (error) {
-        setError(error.message);
-        onError(`Error setting localStorage key "${key}":`, error);
-      }
-    },
-    [key, serialize, storedValue, onError]
-  );
-
-  const removeValue = useCallback(() => {
+  // Return a wrapped version of useState's setter function that
+  // persists the new value to localStorage
+  const setValue = useCallback((value) => {
     try {
-      setError(null);
-      setStoredValue(initialValue);
-
-      if (typeof window !== "undefined") {
+      // Allow value to be a function so we have the same API as useState
+      const valueToStore = value instanceof Function ? value(storedValue) : value;
+      
+      // Save state
+      setStoredValue(valueToStore);
+      
+      // Save to local storage
+      if (valueToStore === null || valueToStore === undefined) {
         window.localStorage.removeItem(key);
+      } else {
+        window.localStorage.setItem(key, JSON.stringify(valueToStore));
       }
+      
+      // Dispatch custom event for cross-tab sync
+      window.dispatchEvent(new CustomEvent('localStorageChange', {
+        detail: { key, value: valueToStore }
+      }));
+      
     } catch (error) {
-      setError(error.message);
-      onError(`Error removing localStorage key "${key}":`, error);
+      console.error(`Error setting localStorage key "${key}":`, error);
     }
-  }, [key, initialValue, onError]);
+  }, [key, storedValue]);
 
-  // Listen for changes across tabs (if enabled)
+  // Listen for changes in other tabs
   useEffect(() => {
-    if (!syncAcrossTabs || typeof window === "undefined") {
-      return;
-    }
-
     const handleStorageChange = (e) => {
       if (e.key === key && e.newValue !== null) {
         try {
-          const newValue = deserialize(e.newValue);
+          const newValue = JSON.parse(e.newValue);
           setStoredValue(newValue);
-          setError(null);
         } catch (error) {
-          setError(error.message);
-          onError(`Error syncing localStorage key "${key}" across tabs:`, error);
+          console.error(`Error parsing localStorage change for key "${key}":`, error);
         }
+      } else if (e.key === key && e.newValue === null) {
+        setStoredValue(initialValue);
       }
     };
 
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, [key, deserialize, syncAcrossTabs, onError]);
+    const handleCustomStorageChange = (e) => {
+      if (e.detail.key === key) {
+        setStoredValue(e.detail.value);
+      }
+    };
 
-  return [storedValue, setValue, removeValue, error];
-}
+    // Listen to storage events (changes from other tabs)
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Listen to custom events (changes from same tab)
+    window.addEventListener('localStorageChange', handleCustomStorageChange);
 
-/**
- * Specialized hook for storing objects in localStorage
- */
-export function useLocalStorageObject(key, initialValue = {}) {
-  return useLocalStorage(key, initialValue, {
-    serialize: JSON.stringify,
-    deserialize: JSON.parse,
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('localStorageChange', handleCustomStorageChange);
+    };
+  }, [key, initialValue]);
+
+  // Clear the value
+  const removeValue = useCallback(() => {
+    setValue(null);
+  }, [setValue]);
+
+  // Check if key exists
+  const hasValue = useCallback(() => {
+    return window.localStorage.getItem(key) !== null;
+  }, [key]);
+
+  return [storedValue, setValue, removeValue, hasValue];
+};
+
+// Specialized hooks for common use cases
+export const useAuthToken = () => {
+  return useLocalStorage('authToken', null);
+};
+
+export const useActiveHouseholdId = () => {
+  return useLocalStorage('activeHouseholdId', null);
+};
+
+export const useUserPreferences = () => {
+  return useLocalStorage('userPreferences', {
+    theme: 'system',
+    notifications: true,
+    language: 'en',
   });
-}
+};
 
-/**
- * Specialized hook for storing arrays in localStorage
- */
-export function useLocalStorageArray(key, initialValue = []) {
-  return useLocalStorage(key, initialValue, {
-    serialize: JSON.stringify,
-    deserialize: JSON.parse,
-  });
-}
+export const useRecentSearches = () => {
+  const [searches, setSearches] = useLocalStorage('recentSearches', []);
+  
+  const addSearch = useCallback((search) => {
+    setSearches(prev => {
+      const filtered = prev.filter(s => s.toLowerCase() !== search.toLowerCase());
+      return [search, ...filtered].slice(0, 10); // Keep last 10 searches
+    });
+  }, [setSearches]);
+  
+  const clearSearches = useCallback(() => {
+    setSearches([]);
+  }, [setSearches]);
+  
+  return [searches, addSearch, clearSearches];
+};
 
-/**
- * Specialized hook for storing simple strings
- */
-export function useLocalStorageString(key, initialValue = "") {
-  return useLocalStorage(key, initialValue, {
-    serialize: (value) => value,
-    deserialize: (value) => value,
-  });
-}
+export const useDraftData = (key) => {
+  const storageKey = `draft_${key}`;
+  const [draft, setDraft] = useLocalStorage(storageKey, null);
+  
+  const saveDraft = useCallback((data) => {
+    setDraft({
+      data,
+      timestamp: new Date().toISOString(),
+    });
+  }, [setDraft]);
+  
+  const clearDraft = useCallback(() => {
+    setDraft(null);
+  }, [setDraft]);
+  
+  const hasDraft = draft !== null;
+  const draftAge = draft ? Date.now() - new Date(draft.timestamp).getTime() : 0;
+  const isDraftExpired = draftAge > 24 * 60 * 60 * 1000; // 24 hours
+  
+  return {
+    draft: isDraftExpired ? null : draft?.data,
+    saveDraft,
+    clearDraft,
+    hasDraft: hasDraft && !isDraftExpired,
+    draftAge,
+  };
+};
 
-/**
- * Specialized hook for storing boolean values
- */
-export function useLocalStorageBoolean(key, initialValue = false) {
-  return useLocalStorage(key, initialValue, {
-    serialize: (value) => value.toString(),
-    deserialize: (value) => value === "true",
-  });
-}
+// Cache management utilities
+export const useLocalCache = (key, ttl = 5 * 60 * 1000) => { // Default 5 minutes TTL
+  const storageKey = `cache_${key}`;
+  const [cacheData, setCacheData] = useLocalStorage(storageKey, null);
+  
+  const setCache = useCallback((data) => {
+    setCacheData({
+      data,
+      timestamp: Date.now(),
+      ttl,
+    });
+  }, [setCacheData, ttl]);
+  
+  const getCache = useCallback(() => {
+    if (!cacheData) return null;
+    
+    const age = Date.now() - cacheData.timestamp;
+    if (age > cacheData.ttl) {
+      setCacheData(null);
+      return null;
+    }
+    
+    return cacheData.data;
+  }, [cacheData, setCacheData]);
+  
+  const clearCache = useCallback(() => {
+    setCacheData(null);
+  }, [setCacheData]);
+  
+  const isValid = cacheData && (Date.now() - cacheData.timestamp) < cacheData.ttl;
+  
+  return {
+    data: isValid ? cacheData.data : null,
+    setCache,
+    getCache,
+    clearCache,
+    isValid,
+  };
+};
+
+export default useLocalStorage;

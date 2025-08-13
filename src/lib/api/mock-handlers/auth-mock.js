@@ -1,56 +1,79 @@
-import * as mockData from 'mock-data/index.js';
+import { mockUsers } from '../../mock-data/users.js';
+import { mockHouseholds } from '../../mock-data/households.js';
 
-export const handleAuthMock = async (method, endpoint, data, options) => {
-  // GET /api/profile - Get user profile
-  if (method === "GET" && endpoint === "/api/profile") {
+let currentUser = mockUsers[0];
+
+export const authMock = {
+  async getProfile() {
     return {
-      data: mockData.currentUser,
-      message: "Profile retrieved successfully",
+      data: currentUser,
+      message: 'Profile retrieved successfully',
     };
-  }
+  },
 
-  // PUT /api/profile - Update user profile
-  if (method === "PUT" && endpoint === "/api/profile") {
-    const updatedUser = {
-      ...mockData.currentUser,
+  async updateProfile({ data }) {
+    currentUser = {
+      ...currentUser,
       ...data,
       updated_at: new Date().toISOString(),
     };
+    
     return {
-      data: updatedUser,
-      message: "Profile updated successfully",
+      data: currentUser,
+      message: 'Profile updated successfully',
     };
-  }
+  },
 
-  // POST /api/invite/validate - Validate invite code
-  if (method === "POST" && endpoint === "/api/invite/validate") {
-    const household = mockData.households[0]; // Use first household for demo
+  async validateInvite({ data }) {
+    const { invite_code } = data;
+    const household = mockHouseholds.find(h => h.invite_code === invite_code);
+    
+    if (!household) {
+      throw {
+        code: 'INVALID_INVITE',
+        message: 'Invalid invitation code',
+        status: 400,
+      };
+    }
+
+    const admin = mockUsers.find(u => u.id === household.admin_id);
+    
     return {
       data: {
         household: {
           id: household.id,
           name: household.name,
-          admin_name: "John Smith",
-          member_count: household.member_count || 3,
-          max_members: household.max_members || 10,
+          admin_name: admin?.full_name || 'Unknown',
+          member_count: household.member_count || 1,
+          max_members: household.max_members,
         },
         valid: true,
       },
-      message: "Invite code validated successfully",
+      message: 'Invitation code is valid',
     };
-  }
+  },
 
-  // POST /api/invite/join - Join household
-  if (method === "POST" && endpoint === "/api/invite/join") {
+  async joinHousehold({ data }) {
+    const { invite_code } = data;
+    const household = mockHouseholds.find(h => h.invite_code === invite_code);
+    
+    if (!household) {
+      throw {
+        code: 'INVALID_INVITE',
+        message: 'Invalid invitation code',
+        status: 400,
+      };
+    }
+
     return {
       data: {
-        household_id: mockData.households[0].id,
-        role: "member",
+        household_id: household.id,
+        role: 'member',
         joined_at: new Date().toISOString(),
       },
-      message: "Successfully joined household",
+      message: 'Successfully joined household',
     };
-  }
-
-  throw new Error(`Auth mock not implemented: ${method} ${endpoint}`);
+  },
 };
+
+export default authMock;
