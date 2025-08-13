@@ -1,20 +1,25 @@
-// API Configuration - Mock/Prod Toggle
-const API_CONFIG = {
-  // Toggle between 'mock' and 'prod'
-  MODE: process.env.REACT_APP_API_MODE || "mock",
+// api.js
+const mode = import.meta.env.VITE_API_MODE || "mock";
 
-  // Production API settings
+const API_CONFIG = {
+  MODE: ["mock", "prod"].includes(mode) ? mode : "mock",
+
   PROD: {
-    BASE_URL: process.env.REACT_APP_API_BASE_URL || "https://your-api.com/api",
+    BASE_URL: import.meta.env.VITE_API_BASE_URL || "https://your-api.com/api",
     TIMEOUT: 10000,
     RETRIES: 3,
   },
 
-  // Mock API settings
   MOCK: {
-    DELAY: 800, // Simulate network delay
-    ERROR_RATE: 0.05, // 5% random errors for testing
+    DELAY: Number(import.meta.env.VITE_API_MOCK_DELAY) || 800,
+    ERROR_RATE: Number(import.meta.env.VITE_API_MOCK_ERROR_RATE) || 0.05,
     ENABLE_LOGGING: true,
+  },
+
+  log: (...args) => {
+    if (mode === "mock" && API_CONFIG.MOCK.ENABLE_LOGGING) {
+      console.log("[Mock API]", ...args);
+    }
   },
 };
 

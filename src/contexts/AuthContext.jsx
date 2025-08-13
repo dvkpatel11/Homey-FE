@@ -1,31 +1,31 @@
-import React, { createContext, useContext, useEffect, useReducer } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { authAPI } from '../lib/api';
-import { useLocalStorage } from '../hooks/useLocalStorage';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createContext, useContext, useEffect, useReducer } from "react";
+import { useAuthToken } from "../hooks/useLocalStorage";
+import { authAPI } from "../lib/api";
 
 const AuthContext = createContext();
 
 // Auth state reducer
 const authReducer = (state, action) => {
   switch (action.type) {
-    case 'SET_USER':
+    case "SET_USER":
       return {
         ...state,
         user: action.payload,
         isAuthenticated: !!action.payload,
       };
-    case 'SET_LOADING':
+    case "SET_LOADING":
       return {
         ...state,
         isLoading: action.payload,
       };
-    case 'SET_ERROR':
+    case "SET_ERROR":
       return {
         ...state,
         error: action.payload,
         isLoading: false,
       };
-    case 'LOGOUT':
+    case "LOGOUT":
       return {
         user: null,
         isAuthenticated: false,
@@ -47,7 +47,7 @@ const initialState = {
 export const AuthProvider = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
   const queryClient = useQueryClient();
-  const [authToken, setAuthToken] = useLocalStorage('authToken', null);
+  const [authToken, setAuthToken, removeAuthToken] = useAuthToken();
 
   // Query user profile
   const {
@@ -56,7 +56,7 @@ export const AuthProvider = ({ children }) => {
     error: profileError,
     refetch: refetchProfile,
   } = useQuery({
-    queryKey: ['auth', 'profile'],
+    queryKey: ["auth", "profile"],
     queryFn: authAPI.getProfile,
     enabled: !!authToken,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -71,11 +71,11 @@ export const AuthProvider = ({ children }) => {
   const updateProfileMutation = useMutation({
     mutationFn: authAPI.updateProfile,
     onSuccess: (data) => {
-      queryClient.setQueryData(['auth', 'profile'], data);
-      dispatch({ type: 'SET_USER', payload: data.data });
+      queryClient.setQueryData(["auth", "profile"], data);
+      dispatch({ type: "SET_USER", payload: data.data });
     },
     onError: (error) => {
-      dispatch({ type: 'SET_ERROR', payload: error.message });
+      dispatch({ type: "SET_ERROR", payload: error.message });
     },
   });
 
@@ -83,8 +83,8 @@ export const AuthProvider = ({ children }) => {
   const uploadAvatarMutation = useMutation({
     mutationFn: authAPI.uploadAvatar,
     onSuccess: (data) => {
-      queryClient.setQueryData(['auth', 'profile'], data);
-      dispatch({ type: 'SET_USER', payload: data.data });
+      queryClient.setQueryData(["auth", "profile"], data);
+      dispatch({ type: "SET_USER", payload: data.data });
     },
   });
 
@@ -93,7 +93,7 @@ export const AuthProvider = ({ children }) => {
     mutationFn: authAPI.joinHousehold,
     onSuccess: () => {
       // Invalidate households query to refresh the list
-      queryClient.invalidateQueries({ queryKey: ['households'] });
+      queryClient.invalidateQueries({ queryKey: ["households"] });
     },
   });
 
@@ -105,31 +105,31 @@ export const AuthProvider = ({ children }) => {
   // Initialize auth state
   useEffect(() => {
     if (!authToken) {
-      dispatch({ type: 'LOGOUT' });
+      dispatch({ type: "LOGOUT" });
       return;
     }
 
     if (profileData?.data) {
-      dispatch({ type: 'SET_USER', payload: profileData.data });
+      dispatch({ type: "SET_USER", payload: profileData.data });
     } else if (profileError) {
       if (profileError.status === 401) {
         logout();
       } else {
-        dispatch({ type: 'SET_ERROR', payload: profileError.message });
+        dispatch({ type: "SET_ERROR", payload: profileError.message });
       }
     }
 
-    dispatch({ type: 'SET_LOADING', payload: profileLoading });
+    dispatch({ type: "SET_LOADING", payload: profileLoading });
   }, [authToken, profileData, profileError, profileLoading]);
 
   // Auth methods
   const login = async (token, user) => {
     setAuthToken(token);
-    dispatch({ type: 'SET_USER', payload: user });
-    
+    dispatch({ type: "SET_USER", payload: user });
+
     // Pre-fetch user households
     queryClient.prefetchQuery({
-      queryKey: ['households'],
+      queryKey: ["households"],
       staleTime: 2 * 60 * 1000,
     });
   };
@@ -140,14 +140,14 @@ export const AuthProvider = ({ children }) => {
         await authAPI.logout();
       }
     } catch (error) {
-      console.warn('Logout API call failed:', error);
+      console.warn("Logout API call failed:", error);
     } finally {
       setAuthToken(null);
-      dispatch({ type: 'LOGOUT' });
+      dispatch({ type: "LOGOUT" });
       queryClient.clear();
-      
+
       // Redirect to login
-      window.location.href = '/login';
+      window.location.href = "/login";
     }
   };
 
@@ -176,7 +176,7 @@ export const AuthProvider = ({ children }) => {
         const response = await authAPI.refreshToken();
         setAuthToken(response.data.token);
       } catch (error) {
-        console.error('Token refresh failed:', error);
+        console.error("Token refresh failed:", error);
         logout();
       }
     };
@@ -202,17 +202,13 @@ export const AuthProvider = ({ children }) => {
     isJoiningHousehold: joinHouseholdMutation.isPending,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };

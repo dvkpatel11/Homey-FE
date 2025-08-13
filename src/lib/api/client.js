@@ -1,98 +1,198 @@
-import API_CONFIG from '../config/api.js';
-import mockClient from './mock-client.js';
-import prodClient from './prod-client.js';
+// Enhanced API client with better type safety and caching
+import API_CONFIG from "../config/api.js";
+import mockClient from "./mock-client.js";
+import prodClient from "./prod-client.js";
 
-// Unified API client that switches between mock and production
-const apiClient = API_CONFIG.MODE === 'mock' ? mockClient : prodClient;
+// Type definitions (consider moving to TypeScript)
+const ApiResponse = {
+  validate: (response) => {
+    if (!response.data) throw new Error("Invalid API response structure");
+    return response;
+  },
+};
 
-// Enhanced client with middleware
-class EnhancedClient {
-  constructor(baseClient) {
-    this.client = baseClient;
-    this.requestInterceptors = [];
-    this.responseInterceptors = [];
+// Cache implementation for production
+class ApiCache {
+  constructor(ttl = 300000) {
+    // 5 minutes default
+    this.cache = new Map();
+    this.ttl = ttl;
   }
 
-  // Add request interceptor
+  get(key) {
+    const item = this.cache.get(key);
+    if (!item) return null;
+
+    if (Date.now() > item.expires) {
+      this.cache.delete(key);
+      return null;
+    }
+    return item.data;
+  }
+
+  set(key, data) {
+    this.cache.set(key, {
+      data,
+      expires: Date.now() + this.ttl,
+    });
+  }
+
+  clear() {
+    this.cache.clear();
+  }
+}
+
+// Enhanced client with middleware and caching
+class EnhancedApiClient {
+  constructor(baseClient) {
+    this.client = baseClient;
+    this.cache = new ApiCache();
+    this.requestInterceptors = [];
+    this.responseInterceptors = [];
+    this.middleware = [];
+  }
+
+  // Middleware system for advanced features
+  use(middleware) {
+    this.middleware.push(middleware);
+  }
+
+  // Add methods for managing interceptors
   addRequestInterceptor(interceptor) {
     this.requestInterceptors.push(interceptor);
   }
 
-  // Add response interceptor
   addResponseInterceptor(interceptor) {
     this.responseInterceptors.push(interceptor);
   }
 
-  // Process request through interceptors
+  // Enhanced request processing
   async processRequest(config) {
     let processedConfig = { ...config };
+
+    // Apply middleware
+    for (const middleware of this.middleware) {
+      processedConfig = await middleware.request(processedConfig);
+    }
+
+    // Apply interceptors
     for (const interceptor of this.requestInterceptors) {
       processedConfig = await interceptor(processedConfig);
     }
+
     return processedConfig;
   }
 
-  // Process response through interceptors
-  async processResponse(response) {
+  // Enhanced response processing with caching
+  async processResponse(response, config) {
     let processedResponse = response;
+
+    // Validate response structure
+    ApiResponse.validate(processedResponse);
+
+    // Apply response interceptors
     for (const interceptor of this.responseInterceptors) {
       processedResponse = await interceptor(processedResponse);
     }
+
+    // Cache GET requests in production
+    if (config.method === "GET" && API_CONFIG.MODE === "prod") {
+      const cacheKey = `${config.method}:${config.url}`;
+      this.cache.set(cacheKey, processedResponse.data);
+    }
+
     return processedResponse;
   }
 
-  // Enhanced request method
+  // Smart caching for GET requests
   async request(config) {
     try {
       const processedConfig = await this.processRequest(config);
+
+      // Check cache for GET requests
+      if (processedConfig.method === "GET" && API_CONFIG.MODE === "prod") {
+        const cacheKey = `${processedConfig.method}:${processedConfig.url}`;
+        const cached = this.cache.get(cacheKey);
+        if (cached) {
+          return { data: cached, status: 200, cached: true };
+        }
+      }
+
       const response = await this.client.request(processedConfig);
-      return await this.processResponse(response);
+      return await this.processResponse(response, processedConfig);
     } catch (error) {
-      // Global error handling
-      console.error('API Request Error:', error);
-      throw error;
+      console.error("API Request Error:", error);
+
+      // Enhanced error handling with context
+      const enhancedError = {
+        ...error,
+        config: config,
+        timestamp: new Date().toISOString(),
+        retryable: this.isRetryableError(error),
+      };
+
+      throw enhancedError;
     }
   }
 
-  // Convenience methods
+  // Determine if error is retryable
+  isRetryableError(error) {
+    return error.code === "NETWORK_ERROR" || error.status >= 500 || error.code === "TIMEOUT";
+  }
+
+  // Convenience methods with better error context
   get(url, config = {}) {
-    return this.request({ ...config, method: 'GET', url });
+    return this.request({ ...config, method: "GET", url });
   }
 
   post(url, data, config = {}) {
-    return this.request({ ...config, method: 'POST', url, data });
+    return this.request({ ...config, method: "POST", url, data });
   }
 
   put(url, data, config = {}) {
-    return this.request({ ...config, method: 'PUT', url, data });
+    return this.request({ ...config, method: "PUT", url, data });
   }
 
   delete(url, config = {}) {
-    return this.request({ ...config, method: 'DELETE', url });
+    return this.request({ ...config, method: "DELETE", url });
+  }
+
+  // Utility methods
+  clearCache() {
+    this.cache.clear();
+  }
+
+  getCacheStats() {
+    return {
+      size: this.cache.cache.size,
+      mode: API_CONFIG.MODE,
+    };
   }
 }
 
 // Create enhanced client instance
-const client = new EnhancedClient(apiClient);
+const baseClient = API_CONFIG.MODE === "mock" ? mockClient : prodClient;
+const client = new EnhancedApiClient(baseClient);
 
-// Add default interceptors
-client.addRequestInterceptor(async (config) => {
-  // Add auth token if available
-  const token = localStorage.getItem('authToken');
-  if (token) {
-    config.headers = {
-      ...config.headers,
-      Authorization: `Bearer ${token}`,
-    };
-  }
-  return config;
+// Add authentication middleware
+client.use({
+  request: async (config) => {
+    const token = localStorage.getItem("authToken");
+    if (token) {
+      config.headers = {
+        ...config.headers,
+        Authorization: `Bearer ${token}`,
+      };
+    }
+    return config;
+  },
 });
 
+// Add global error handling
 client.addResponseInterceptor(async (response) => {
-  // Handle auth errors globally
   if (response.status === 401) {
-    localStorage.removeItem('authToken');
-    window.location.href = '/login';
+    localStorage.removeItem("authToken");
+    window.location.href = "/login";
   }
   return response;
 });

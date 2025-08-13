@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Suspense, lazy, useCallback, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { Toaster } from "react-hot-toast";
@@ -13,9 +14,9 @@ import FloatingElements from "./components/layout/FloatingElements";
 import Header from "./components/layout/Header";
 import Navigation from "./components/layout/Navigation";
 
-// Auth Components
-import LoginForm from "./components/features/auth/LoginForm";
-import AuthLayout from "./components/layout/AuthLayout";
+// Auth Components (commented out for now)
+// import LoginForm from "./components/features/auth/LoginForm";
+// import AuthLayout from "./components/layout/AuthLayout";
 
 // Lazy load pages for better performance
 const DashboardPage = lazy(() => import("./pages/dashboard/DashboardPage"));
@@ -25,20 +26,34 @@ const AnnouncementsPage = lazy(() => import("./pages/announcements/Announcements
 
 import "./index.css";
 
-// Loading component
+// Create QueryClient instance
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      retry: (failureCount, error) => {
+        // Don't retry on auth errors
+        if (error?.status === 401) return false;
+        return failureCount < 2;
+      },
+    },
+  },
+});
+
+// Loading component with new glass styling
 const PageLoader = () => (
   <div className="flex items-center justify-center min-h-64">
-    <div className="flex flex-col items-center space-y-4">
-      <div className="animate-spin rounded-full h-8 w-8 border-2 border-white/20 border-t-primary"></div>
+    <div className="glass-card p-8 flex flex-col items-center space-y-4">
+      <div className="animate-spin rounded-full h-8 w-8 border-2 border-homey-violet-500/30 border-t-homey-violet-500"></div>
       <p className="text-glass-muted text-sm">Loading...</p>
     </div>
   </div>
 );
 
-// Error fallback component
+// Error fallback component with new glass styling
 const ErrorFallback = ({ error, resetErrorBoundary }) => (
   <div className="flex items-center justify-center min-h-screen p-6">
-    <div className="glass glass-strong p-8 max-w-md w-full text-center">
+    <div className="glass-card glass-card-strong p-8 max-w-md w-full text-center">
       <div className="mb-4">
         <div className="w-12 h-12 rounded-full bg-red-500/20 mx-auto mb-3 flex items-center justify-center">
           <svg className="w-6 h-6 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -53,31 +68,26 @@ const ErrorFallback = ({ error, resetErrorBoundary }) => (
         <h2 className="text-xl font-semibold text-glass mb-2">Something went wrong</h2>
         <p className="text-glass-muted mb-6 text-sm">{error.message}</p>
       </div>
-      <button
-        onClick={resetErrorBoundary}
-        className="glass glass-hoverable glass-lift w-full px-6 py-3 rounded-lg text-glass font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-white/20 focus:ring-offset-2 focus:ring-offset-transparent"
-      >
+      <button onClick={resetErrorBoundary} className="glass-button w-full px-6 py-3 rounded-xl text-white font-medium">
         Try again
       </button>
     </div>
   </div>
 );
 
-// Auth loading component
-const AuthLoader = () => {
-  const { themeClasses } = useTheme();
-
+// Development auth bypass loader
+const DevLoader = () => {
   return (
-    <div className={`min-h-screen ${themeClasses.bgClasses} flex items-center justify-center safe-area-inset`}>
+    <div className="min-h-screen bg-homey-bg checkered-violet flex items-center justify-center safe-area-inset">
       <div className="flex flex-col items-center space-y-6">
-        <div className="glass glass-strong p-6 rounded-glass-xl">
-          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-primary-600 flex items-center justify-center">
+        <div className="glass-card glass-card-violet p-6 rounded-glass-xl">
+          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-homey-violet-500 to-homey-violet-600 flex items-center justify-center">
             <div className="animate-spin rounded-full h-8 w-8 border-2 border-white/30 border-t-white"></div>
           </div>
         </div>
         <div className="text-center">
           <h3 className="text-glass font-medium mb-2">Welcome to Homey</h3>
-          <p className="text-glass-muted text-sm">Setting up your household...</p>
+          <p className="text-glass-muted text-sm">Loading your household...</p>
         </div>
       </div>
     </div>
@@ -86,36 +96,39 @@ const AuthLoader = () => {
 
 // Main App Content Component
 const AppContent = () => {
-  const { isLoggedIn, isLoading } = useAuth();
-  const { themeClasses } = useTheme();
+  // TEMPORARILY BYPASS AUTH FOR DEVELOPMENT
+  const { isLoading } = useAuth();
+  const { isDark } = useTheme();
   const [currentPage, setCurrentPage] = useState("dashboard");
+
+  // Mock auth state for development
+  const isLoggedIn = true; // Force logged in for development
 
   // Memoized page handler for better performance
   const handlePageChange = useCallback((page) => {
     setCurrentPage(page);
   }, []);
 
-  // Show enhanced loading while checking auth
+  // Show enhanced loading while checking auth (shortened for dev)
   if (isLoading) {
-    return <AuthLoader />;
+    return <DevLoader />;
   }
 
-  // If not logged in, show auth layout
-  if (!isLoggedIn) {
-    return (
-      <ErrorBoundary FallbackComponent={ErrorFallback}>
-        <AuthLayout>
-          <Suspense fallback={<PageLoader />}>
-            <LoginForm />
-          </Suspense>
-        </AuthLayout>
-      </ErrorBoundary>
-    );
-  }
+  // COMMENTED OUT AUTH CHECK FOR DEVELOPMENT
+  // if (!isLoggedIn) {
+  //   return (
+  //     <ErrorBoundary FallbackComponent={ErrorFallback}>
+  //       <AuthLayout>
+  //         <Suspense fallback={<PageLoader />}>
+  //           <LoginForm />
+  //         </Suspense>
+  //       </AuthLayout>
+  //     </ErrorBoundary>
+  //   );
+  // }
 
   // Render the current page based on navigation
   const renderCurrentPage = () => {
-    // Pass key directly, not through spread
     switch (currentPage) {
       case "dashboard":
         return <DashboardPage key={currentPage} />;
@@ -130,10 +143,12 @@ const AppContent = () => {
     }
   };
 
-  // Main app layout for authenticated users
+  // Main app layout for authenticated users (using new glass system)
   return (
     <ErrorBoundary FallbackComponent={ErrorFallback}>
-      <div className={`min-h-screen ${themeClasses.bgClasses} relative overflow-hidden safe-area-inset`}>
+      <div
+        className={`min-h-screen ${isDark ? "dark" : ""} bg-homey-bg checkered-violet relative overflow-hidden safe-area-inset`}
+      >
         {/* Background floating elements */}
         <FloatingElements />
 
@@ -158,64 +173,110 @@ const AppContent = () => {
 const App = () => {
   return (
     <ErrorBoundary FallbackComponent={ErrorFallback}>
-      <ThemeProvider>
-        <AuthProvider>
-          <HouseholdProvider>
-            <NotificationProvider>
-              <AppContent />
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
+          <AuthProvider>
+            <HouseholdProvider>
+              <NotificationProvider>
+                <AppContent />
 
-              {/* Enhanced Toast Notifications */}
-              <Toaster
-                position="top-center"
-                containerClassName="safe-area-top"
-                toastOptions={{
-                  duration: 4000,
-                  style: {
-                    background: "rgba(255, 255, 255, 0.08)",
-                    backdropFilter: "blur(20px)",
-                    border: "1px solid rgba(255, 255, 255, 0.15)",
-                    color: "#fff",
-                    borderRadius: "12px",
-                    padding: "12px 16px",
-                    fontSize: "14px",
-                    fontWeight: "500",
-                    boxShadow: "0 8px 32px rgba(0, 0, 0, 0.25)",
-                    maxWidth: "calc(100vw - 32px)", // Mobile-friendly width
-                  },
-                  success: {
+                {/* Enhanced Toast Notifications with new glass styling */}
+                <Toaster
+                  position="top-center"
+                  containerClassName="safe-area-top"
+                  toastOptions={{
+                    duration: 4000,
                     style: {
-                      borderColor: "rgba(16, 185, 129, 0.3)",
-                      background: "linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05))",
+                      background: "var(--homey-glass-bg)",
+                      backdropFilter: "blur(16px)",
+                      border: "1px solid var(--homey-glass-border)",
+                      color: "var(--homey-text)",
+                      borderRadius: "1rem",
+                      padding: "12px 16px",
+                      fontSize: "14px",
+                      fontWeight: "500",
+                      boxShadow: "0 8px 32px rgba(0, 0, 0, 0.25)",
+                      maxWidth: "calc(100vw - 32px)",
                     },
-                    iconTheme: {
-                      primary: "#10b981",
-                      secondary: "#fff",
+                    success: {
+                      style: {
+                        borderColor: "rgba(16, 185, 129, 0.3)",
+                        background: "linear-gradient(135deg, rgba(16, 185, 129, 0.1), var(--homey-glass-bg))",
+                      },
+                      iconTheme: {
+                        primary: "#10b981",
+                        secondary: "#fff",
+                      },
                     },
-                  },
-                  error: {
-                    style: {
-                      borderColor: "rgba(239, 68, 68, 0.3)",
-                      background: "linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.05))",
+                    error: {
+                      style: {
+                        borderColor: "rgba(239, 68, 68, 0.3)",
+                        background: "linear-gradient(135deg, rgba(239, 68, 68, 0.1), var(--homey-glass-bg))",
+                      },
+                      iconTheme: {
+                        primary: "#ef4444",
+                        secondary: "#fff",
+                      },
                     },
-                    iconTheme: {
-                      primary: "#ef4444",
-                      secondary: "#fff",
+                    loading: {
+                      style: {
+                        borderColor: "var(--homey-glass-violet)",
+                        background: "linear-gradient(135deg, var(--homey-glass-violet), var(--homey-glass-bg))",
+                      },
                     },
-                  },
-                  loading: {
-                    style: {
-                      borderColor: "rgba(59, 130, 246, 0.3)",
-                      background: "linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05))",
-                    },
-                  },
-                }}
-              />
-            </NotificationProvider>
-          </HouseholdProvider>
-        </AuthProvider>
-      </ThemeProvider>
+                  }}
+                />
+              </NotificationProvider>
+            </HouseholdProvider>
+          </AuthProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
     </ErrorBoundary>
   );
 };
 
 export default App;
+
+// ==========================================
+// DEVELOPMENT NOTES:
+// ==========================================
+
+/* 
+🚀 AUTH BYPASS FOR DEVELOPMENT:
+
+1. Set `isLoggedIn = true` to skip auth flow
+2. Commented out auth check conditional
+3. All context providers still active
+4. Mock data will be used via your API layer
+5. Full household/task/expense functionality available
+
+🔧 QUERY CLIENT SETUP:
+
+1. Added QueryClientProvider at the top level
+2. Configured default options for queries
+3. Auth error handling in place
+4. 5-minute stale time for better performance
+
+🎨 NEW GLASS STYLING INTEGRATED:
+
+1. Updated all glass components to use new utilities
+2. Toast notifications use CSS variables
+3. Checkered background pattern applied
+4. Violet accent colors throughout
+
+🔧 TO RE-ENABLE AUTH LATER:
+
+1. Uncomment the auth check conditional
+2. Set `isLoggedIn` back to use `useAuth()` hook
+3. Uncomment AuthLayout and LoginForm imports
+4. Remove the mock `isLoggedIn = true` line
+
+📱 READY FOR COMPONENT DEVELOPMENT:
+
+- QueryClient properly configured
+- All your hooks (useTasks, useExpenses, etc.) are active
+- Mock data flows through your API layer
+- TanStack Query caching works
+- Real-time context updates work
+- New violet glassmorphic styling applied
+*/

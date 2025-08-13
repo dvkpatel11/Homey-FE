@@ -1,46 +1,46 @@
-import React, { createContext, useContext, useEffect, useReducer } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { householdsAPI } from '../lib/api';
-import { useLocalStorage } from '../hooks/useLocalStorage';
-import { useAuth } from './AuthContext';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createContext, useContext, useEffect, useReducer } from "react";
+import { useActiveHouseholdId } from "../hooks/useLocalStorage";
+import { householdsAPI } from "../lib/api";
+import { useAuth } from "./AuthContext";
 
 const HouseholdContext = createContext();
 
 // Household state reducer
 const householdReducer = (state, action) => {
   switch (action.type) {
-    case 'SET_HOUSEHOLDS':
+    case "SET_HOUSEHOLDS":
       return {
         ...state,
         households: action.payload,
       };
-    case 'SET_ACTIVE_HOUSEHOLD':
+    case "SET_ACTIVE_HOUSEHOLD":
       return {
         ...state,
         activeHousehold: action.payload,
         activeHouseholdId: action.payload?.id || null,
       };
-    case 'SET_MEMBERS':
+    case "SET_MEMBERS":
       return {
         ...state,
         members: action.payload,
       };
-    case 'SET_DASHBOARD_DATA':
+    case "SET_DASHBOARD_DATA":
       return {
         ...state,
         dashboardData: action.payload,
       };
-    case 'SET_LOADING':
+    case "SET_LOADING":
       return {
         ...state,
         isLoading: action.payload,
       };
-    case 'SET_ERROR':
+    case "SET_ERROR":
       return {
         ...state,
         error: action.payload,
       };
-    case 'CLEAR_ERROR':
+    case "CLEAR_ERROR":
       return {
         ...state,
         error: null,
@@ -64,7 +64,7 @@ export const HouseholdProvider = ({ children }) => {
   const [state, dispatch] = useReducer(householdReducer, initialState);
   const queryClient = useQueryClient();
   const { isAuthenticated } = useAuth();
-  const [activeHouseholdId, setActiveHouseholdId] = useLocalStorage('activeHouseholdId', null);
+  const [activeHouseholdId, setActiveHouseholdId] = useActiveHouseholdId();
 
   // Query user's households
   const {
@@ -73,7 +73,7 @@ export const HouseholdProvider = ({ children }) => {
     error: householdsError,
     refetch: refetchHouseholds,
   } = useQuery({
-    queryKey: ['households'],
+    queryKey: ["households"],
     queryFn: householdsAPI.getHouseholds,
     enabled: isAuthenticated,
     staleTime: 2 * 60 * 1000, // 2 minutes
@@ -85,7 +85,7 @@ export const HouseholdProvider = ({ children }) => {
     isLoading: activeHouseholdLoading,
     error: activeHouseholdError,
   } = useQuery({
-    queryKey: ['households', activeHouseholdId],
+    queryKey: ["households", activeHouseholdId],
     queryFn: () => householdsAPI.getHousehold(activeHouseholdId),
     enabled: !!activeHouseholdId,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -97,7 +97,7 @@ export const HouseholdProvider = ({ children }) => {
     isLoading: membersLoading,
     error: membersError,
   } = useQuery({
-    queryKey: ['households', activeHouseholdId, 'members'],
+    queryKey: ["households", activeHouseholdId, "members"],
     queryFn: () => householdsAPI.getMembers(activeHouseholdId),
     enabled: !!activeHouseholdId,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -110,7 +110,7 @@ export const HouseholdProvider = ({ children }) => {
     error: dashboardError,
     refetch: refetchDashboard,
   } = useQuery({
-    queryKey: ['households', activeHouseholdId, 'dashboard'],
+    queryKey: ["households", activeHouseholdId, "dashboard"],
     queryFn: () => householdsAPI.getDashboard(activeHouseholdId),
     enabled: !!activeHouseholdId,
     staleTime: 1 * 60 * 1000, // 1 minute (dashboard data changes frequently)
@@ -121,11 +121,11 @@ export const HouseholdProvider = ({ children }) => {
   const createHouseholdMutation = useMutation({
     mutationFn: householdsAPI.createHousehold,
     onSuccess: (data) => {
-      queryClient.setQueryData(['households'], (old) => [...(old?.data || []), data.data]);
+      queryClient.setQueryData(["households"], (old) => [...(old?.data || []), data.data]);
       switchHousehold(data.data.id);
     },
     onError: (error) => {
-      dispatch({ type: 'SET_ERROR', payload: error.message });
+      dispatch({ type: "SET_ERROR", payload: error.message });
     },
   });
 
@@ -133,8 +133,8 @@ export const HouseholdProvider = ({ children }) => {
   const updateHouseholdMutation = useMutation({
     mutationFn: ({ householdId, data }) => householdsAPI.updateHousehold(householdId, data),
     onSuccess: (data) => {
-      queryClient.setQueryData(['households', data.data.id], data);
-      queryClient.invalidateQueries({ queryKey: ['households'] });
+      queryClient.setQueryData(["households", data.data.id], data);
+      queryClient.invalidateQueries({ queryKey: ["households"] });
     },
   });
 
@@ -142,7 +142,7 @@ export const HouseholdProvider = ({ children }) => {
   const deleteHouseholdMutation = useMutation({
     mutationFn: householdsAPI.deleteHousehold,
     onSuccess: (_, householdId) => {
-      queryClient.invalidateQueries({ queryKey: ['households'] });
+      queryClient.invalidateQueries({ queryKey: ["households"] });
       if (activeHouseholdId === householdId) {
         switchHousehold(null);
       }
@@ -153,7 +153,7 @@ export const HouseholdProvider = ({ children }) => {
   const leaveHouseholdMutation = useMutation({
     mutationFn: householdsAPI.leaveHousehold,
     onSuccess: (_, householdId) => {
-      queryClient.invalidateQueries({ queryKey: ['households'] });
+      queryClient.invalidateQueries({ queryKey: ["households"] });
       if (activeHouseholdId === householdId) {
         switchHousehold(null);
       }
@@ -164,7 +164,7 @@ export const HouseholdProvider = ({ children }) => {
   const removeMemberMutation = useMutation({
     mutationFn: ({ householdId, userId }) => householdsAPI.removeMember(householdId, userId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['households', activeHouseholdId, 'members'] });
+      queryClient.invalidateQueries({ queryKey: ["households", activeHouseholdId, "members"] });
     },
   });
 
@@ -176,8 +176,8 @@ export const HouseholdProvider = ({ children }) => {
   // Update state when data changes
   useEffect(() => {
     if (householdsData?.data) {
-      dispatch({ type: 'SET_HOUSEHOLDS', payload: householdsData.data });
-      
+      dispatch({ type: "SET_HOUSEHOLDS", payload: householdsData.data });
+
       // Auto-select first household if none is active
       if (!activeHouseholdId && householdsData.data.length > 0) {
         switchHousehold(householdsData.data[0].id);
@@ -187,46 +187,54 @@ export const HouseholdProvider = ({ children }) => {
 
   useEffect(() => {
     if (activeHouseholdData?.data) {
-      dispatch({ type: 'SET_ACTIVE_HOUSEHOLD', payload: activeHouseholdData.data });
+      dispatch({ type: "SET_ACTIVE_HOUSEHOLD", payload: activeHouseholdData.data });
     }
   }, [activeHouseholdData]);
 
   useEffect(() => {
     if (membersData?.data) {
-      dispatch({ type: 'SET_MEMBERS', payload: membersData.data });
+      dispatch({ type: "SET_MEMBERS", payload: membersData.data });
     }
   }, [membersData]);
 
   useEffect(() => {
     if (dashboardData?.data) {
-      dispatch({ type: 'SET_DASHBOARD_DATA', payload: dashboardData.data });
+      dispatch({ type: "SET_DASHBOARD_DATA", payload: dashboardData.data });
     }
   }, [dashboardData]);
 
   // Handle loading and errors
   useEffect(() => {
     const isLoading = householdsLoading || activeHouseholdLoading || membersLoading || dashboardLoading;
-    dispatch({ type: 'SET_LOADING', payload: isLoading });
+    dispatch({ type: "SET_LOADING", payload: isLoading });
 
     const error = householdsError || activeHouseholdError || membersError || dashboardError;
     if (error) {
-      dispatch({ type: 'SET_ERROR', payload: error.message });
+      dispatch({ type: "SET_ERROR", payload: error.message });
     }
-  }, [householdsLoading, activeHouseholdLoading, membersLoading, dashboardLoading,
-      householdsError, activeHouseholdError, membersError, dashboardError]);
+  }, [
+    householdsLoading,
+    activeHouseholdLoading,
+    membersLoading,
+    dashboardLoading,
+    householdsError,
+    activeHouseholdError,
+    membersError,
+    dashboardError,
+  ]);
 
   // Household methods
   const switchHousehold = (householdId) => {
     if (householdId === activeHouseholdId) return;
-    
+
     setActiveHouseholdId(householdId);
     householdsAPI.switchHousehold(householdId);
-    
+
     // Clear related queries when switching
     if (householdId) {
-      queryClient.removeQueries({ 
-        queryKey: ['households', activeHouseholdId],
-        exact: false 
+      queryClient.removeQueries({
+        queryKey: ["households", activeHouseholdId],
+        exact: false,
       });
     }
   };
@@ -236,44 +244,44 @@ export const HouseholdProvider = ({ children }) => {
   };
 
   const updateHousehold = async (data) => {
-    if (!activeHouseholdId) throw new Error('No active household');
+    if (!activeHouseholdId) throw new Error("No active household");
     return updateHouseholdMutation.mutateAsync({ householdId: activeHouseholdId, data });
   };
 
   const deleteHousehold = async (householdId = activeHouseholdId) => {
-    if (!householdId) throw new Error('No household specified');
+    if (!householdId) throw new Error("No household specified");
     return deleteHouseholdMutation.mutateAsync(householdId);
   };
 
   const leaveHousehold = async (householdId = activeHouseholdId) => {
-    if (!householdId) throw new Error('No household specified');
+    if (!householdId) throw new Error("No household specified");
     return leaveHouseholdMutation.mutateAsync(householdId);
   };
 
   const removeMember = async (userId) => {
-    if (!activeHouseholdId) throw new Error('No active household');
+    if (!activeHouseholdId) throw new Error("No active household");
     return removeMemberMutation.mutateAsync({ householdId: activeHouseholdId, userId });
   };
 
   const generateInvite = async () => {
-    if (!activeHouseholdId) throw new Error('No active household');
+    if (!activeHouseholdId) throw new Error("No active household");
     return generateInviteMutation.mutateAsync(activeHouseholdId);
   };
 
   const clearError = () => {
-    dispatch({ type: 'CLEAR_ERROR' });
+    dispatch({ type: "CLEAR_ERROR" });
   };
 
   // Listen for household changes across tabs
   useEffect(() => {
     const handleStorageChange = (e) => {
-      if (e.key === 'activeHouseholdId' && e.newValue !== activeHouseholdId) {
+      if (e.key === "activeHouseholdId" && e.newValue !== activeHouseholdId) {
         setActiveHouseholdId(e.newValue);
       }
     };
 
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, [activeHouseholdId]);
 
   const value = {
@@ -296,22 +304,18 @@ export const HouseholdProvider = ({ children }) => {
     isRemovingMember: removeMemberMutation.isPending,
     isGeneratingInvite: generateInviteMutation.isPending,
     // Computed properties
-    isAdmin: state.activeHousehold?.role === 'admin',
-    canManageMembers: state.activeHousehold?.role === 'admin',
+    isAdmin: state.activeHousehold?.role === "admin",
+    canManageMembers: state.activeHousehold?.role === "admin",
     memberCount: state.members.length,
   };
 
-  return (
-    <HouseholdContext.Provider value={value}>
-      {children}
-    </HouseholdContext.Provider>
-  );
+  return <HouseholdContext.Provider value={value}>{children}</HouseholdContext.Provider>;
 };
 
 export const useHousehold = () => {
   const context = useContext(HouseholdContext);
   if (!context) {
-    throw new Error('useHousehold must be used within a HouseholdProvider');
+    throw new Error("useHousehold must be used within a HouseholdProvider");
   }
   return context;
 };

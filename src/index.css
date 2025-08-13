@@ -2,32 +2,26 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Enhanced CSS Variables for runtime theming */
+/* Enhanced CSS Variables with Violet Theme */
 :root {
-  /* Primary theme colors */
-  --color-primary: #7c3aed;
-  --color-primary-50: #f3f0ff;
-  --color-primary-100: #e9e2ff;
-  --color-primary-600: #7c3aed;
-  --color-primary-700: #6d28d9;
+  /* Violet color system */
+  --homey-primary: #7c3aed;
+  --homey-primary-bright: #a78bfa;
+  --homey-primary-dark: #6d28d9;
 
-  /* Glass morphism variables */
-  --glass-bg: rgba(255, 255, 255, 0.06);
-  --glass-border: rgba(255, 255, 255, 0.12);
-  --glass-blur: 20px;
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
-  --glass-inset-1: rgba(255, 255, 255, 0.2);
-  --glass-inset-2: rgba(255, 255, 255, 0.1);
+  /* Glass morphism */
+  --homey-glass-bg: rgba(255, 255, 255, 0.15);
+  --homey-glass-border: rgba(255, 255, 255, 0.15);
+  --homey-glass-violet: rgba(139, 92, 246, 0.1);
+  --glass-blur: 16px;
 
-  /* Surface colors for layering */
-  --surface-primary: rgba(255, 255, 255, 0.05);
-  --surface-secondary: rgba(255, 255, 255, 0.03);
-  --surface-accent: rgba(124, 58, 237, 0.1);
+  /* Background */
+  --homey-bg: #f5f5dc; /* Beige for light mode */
 
   /* Text colors */
-  --text-primary: rgba(255, 255, 255, 0.95);
-  --text-secondary: rgba(255, 255, 255, 0.8);
-  --text-muted: rgba(255, 255, 255, 0.6);
+  --homey-text: #0f172a;
+  --homey-text-secondary: #475569;
+  --homey-text-muted: #64748b;
 
   /* Status colors */
   --color-success: #10b981;
@@ -38,24 +32,29 @@
 
 /* Dark theme overrides */
 .dark {
-  --glass-bg: rgba(255, 255, 255, 0.04);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --color-primary: #8b5cf6;
-  --surface-primary: rgba(255, 255, 255, 0.04);
-  --surface-secondary: rgba(255, 255, 255, 0.02);
+  --homey-primary: #8b5cf6;
+  --homey-primary-bright: #a78bfa;
+  --homey-primary-dark: #7c3aed;
+
+  --homey-glass-bg: rgba(0, 0, 0, 0.25);
+  --homey-glass-border: rgba(255, 255, 255, 0.1);
+  --homey-glass-violet: rgba(139, 92, 246, 0.15);
+
+  --homey-bg: #0a0a0a; /* Material black for dark mode */
+
+  --homey-text: #f8fafc;
+  --homey-text-secondary: rgba(248, 250, 252, 0.8);
+  --homey-text-muted: rgba(248, 250, 252, 0.6);
 }
 
 /* Base styles for mobile-first */
 @layer base {
   * {
-    /* Prevent iOS zoom on input focus */
     @apply touch-manipulation;
   }
 
   html {
-    /* Prevent overscroll bounce on iOS */
     overscroll-behavior: none;
-    /* Smooth scrolling */
     scroll-behavior: smooth;
   }
 
@@ -63,10 +62,16 @@
     /* Prevent text size adjust on orientation change */
     -webkit-text-size-adjust: 100%;
     -ms-text-size-adjust: 100%;
+
     /* Better font rendering */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    /* Prevent select on mobile */
+
+    /* Base background with checkered pattern */
+    background-color: var(--homey-bg);
+    @apply checkered-violet;
+
+    /* Prevent select on mobile (allow text content) */
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     -moz-user-select: none;
@@ -87,103 +92,42 @@
 
   /* Focus styles for accessibility */
   :focus-visible {
-    @apply outline-none ring-2 ring-primary-50 ring-offset-2 ring-offset-transparent;
+    @apply outline-none ring-2 ring-homey-violet-500 ring-offset-2 ring-offset-transparent;
   }
 }
 
-/* Enhanced glassmorphism utilities */
-@layer utilities {
-  .glass {
-    background: linear-gradient(135deg, var(--glass-bg), rgba(255, 255, 255, 0.03));
-    backdrop-filter: blur(var(--glass-blur));
-    -webkit-backdrop-filter: blur(var(--glass-blur));
-    border: 1px solid var(--glass-border);
-    box-shadow: var(--glass-shadow);
-    border-radius: 1rem;
-    position: relative;
+/* Enhanced component layer */
+@layer components {
+  /* Glass card variants */
+  .glass-card-subtle {
+    @apply glass-card;
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.08);
   }
 
-  .glass-strong {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04));
-    border-radius: 1.25rem;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
-  }
-
-  .glass-subtle {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-  }
-
-  .glass-hoverable {
-    transition:
-      transform 0.18s cubic-bezier(0.4, 0, 0.2, 1),
-      box-shadow 0.18s cubic-bezier(0.4, 0, 0.2, 1),
-      border-color 0.18s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .glass-inset {
-    box-shadow:
-      0 8px 32px rgba(0, 0, 0, 0.3),
-      inset 0 1px 0 var(--glass-inset-1),
-      inset 0 -1px 0 var(--glass-inset-2);
-  }
-
-  .glass-lift:hover {
-    transform: translateY(-2px) scale(1.01);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+  .glass-card-strong {
+    @apply glass-card;
+    background: rgba(255, 255, 255, 0.12);
     border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
   }
 
-  .glass-lift:active {
-    transform: translateY(-1px) scale(1.005);
-  }
-
-  /* Glass surface variants */
-  .glass-surface-1 {
-    background: var(--surface-primary);
-  }
-
-  .glass-surface-2 {
-    background: var(--surface-secondary);
-  }
-
-  .glass-accent {
-    background: linear-gradient(135deg, var(--surface-accent), rgba(124, 58, 237, 0.05));
-  }
-
-  /* Text utilities */
-  .text-glass {
-    color: var(--text-primary);
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-  }
-
-  .text-glass-secondary {
-    color: var(--text-secondary);
-  }
-
-  .text-glass-muted {
-    color: var(--text-muted);
+  .glass-card-violet {
+    @apply glass-card;
+    background: var(--homey-glass-violet);
+    border-color: rgba(139, 92, 246, 0.2);
+    box-shadow: 0 8px 32px rgba(139, 92, 246, 0.15);
   }
 }
 
 /* Mobile-specific optimizations */
 @media (max-width: 640px) {
   :root {
-    /* Reduce blur for better performance on mobile */
-    --glass-blur: 8px;
-    /* Reduce shadows for performance */
-    --glass-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    --glass-blur: 8px; /* Reduce blur for performance */
   }
 
-  .glass-hoverable {
-    /* Disable hover effects on mobile */
-    transition: none;
-  }
-
-  .glass-lift:hover {
-    transform: none;
-    box-shadow: var(--glass-shadow);
+  .glass-card-hover:hover {
+    transform: none; /* Disable hover on mobile */
   }
 }
 
@@ -195,37 +139,18 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
-
-  .glass-hoverable {
-    transition: none !important;
-  }
-
-  .glass-lift:hover {
-    transform: none !important;
-  }
 }
 
 /* High contrast mode support */
 @media (prefers-contrast: high) {
   :root {
-    --glass-border: rgba(255, 255, 255, 0.3);
-    --text-primary: #ffffff;
-    --text-secondary: rgba(255, 255, 255, 0.9);
+    --homey-glass-border: rgba(255, 255, 255, 0.4);
+    --homey-text: #ffffff;
+    --homey-text-secondary: rgba(255, 255, 255, 0.9);
   }
 }
 
-/* Safe area support for devices with notches */
-@supports (padding: env(safe-area-inset-top)) {
-  .safe-area-top {
-    padding-top: env(safe-area-inset-top);
-  }
-
-  .safe-area-bottom {
-    padding-bottom: env(safe-area-inset-bottom);
-  }
-}
-
-/* Loading states */
+/* Loading shimmer effect */
 @keyframes shimmer {
   0% {
     background-position: -200px 0;
