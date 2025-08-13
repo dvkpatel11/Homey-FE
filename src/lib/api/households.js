@@ -1,15 +1,16 @@
-import client from './client.js';
+import { HouseholdStorage } from "../../hooks/useLocalStorage"; // adjust path
+import client from "./client.js";
 
 export const householdsAPI = {
   // Get user's households
   async getHouseholds() {
-    const response = await client.get('/api/households');
+    const response = await client.get("/api/households");
     return response.data;
   },
 
   // Create new household
   async createHousehold(data) {
-    const response = await client.post('/api/households', data);
+    const response = await client.post("/api/households", data);
     return response.data;
   },
 
@@ -63,17 +64,19 @@ export const householdsAPI = {
 
   // Switch active household (local only)
   switchHousehold(householdId) {
-    localStorage.setItem('activeHouseholdId', householdId);
+    HouseholdStorage.setActiveId(householdId);
     // Trigger storage event for cross-tab sync
-    window.dispatchEvent(new StorageEvent('storage', {
-      key: 'activeHouseholdId',
-      newValue: householdId,
-    }));
+    window.dispatchEvent(
+      new StorageEvent("storage", {
+        key: "activeHouseholdId",
+        newValue: householdId,
+      })
+    );
   },
 
   // Get active household ID
   getActiveHouseholdId() {
-    return localStorage.getItem('activeHouseholdId');
+    return HouseholdStorage.getActiveId();
   },
 };
 

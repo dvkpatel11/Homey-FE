@@ -1,61 +1,63 @@
 // Form persistence hook - separate import
-import { useEffect, useCallback } from 'react';
+import { useCallback, useEffect } from "react";
+import { useFormPersistence as useLocalStorageForm } from "../../hooks/useLocalStorage"; // Adjust path
 
+/**
+ * Migrated form persistence hook using centralized localStorage hook
+ */
 export const useFormPersistence = (form, persistKey) => {
+  // Use centralized localStorage hook
+  const storageKey = persistKey ? `form_${persistKey}` : null;
+  const [persistedData, setPersistedData, removePersistedData, hasPersistedData] = useLocalStorageForm(
+    storageKey,
+    null
+  );
+
   // Load persisted data on mount
   useEffect(() => {
-    if (!persistKey) return;
-    
+    if (!persistKey || !persistedData) return;
+
     try {
-      const saved = localStorage.getItem(`form_${persistKey}`);
-      if (saved) {
-        const parsedData = JSON.parse(saved);
-        // Merge with current values to preserve any defaults
-        const mergedValues = { ...form.values, ...parsedData };
-        form.setValues?.(mergedValues);
-      }
+      // Merge persisted values with current form values
+      const mergedValues = { ...form.values, ...persistedData };
+      form.setValues?.(mergedValues);
     } catch (error) {
-      console.error('Failed to load persisted form data:', error);
+      console.error("Failed to load persisted form data:", error);
     }
-  }, [persistKey]); // Don't include form in deps to avoid re-running
+  }, [persistKey, persistedData]);
 
   // Save data when form values change
   useEffect(() => {
     if (!persistKey || !form.isDirty) return;
-    
+
     try {
-      localStorage.setItem(`form_${persistKey}`, JSON.stringify(form.values));
+      setPersistedData(form.values);
     } catch (error) {
-      console.error('Failed to persist form data:', error);
+      console.error("Failed to persist form data:", error);
     }
-  }, [form.values, form.isDirty, persistKey]);
+  }, [form.values, form.isDirty, persistKey, setPersistedData]);
 
   // Clear persisted data
   const clearPersistedData = useCallback(() => {
-    if (persistKey) {
-      localStorage.removeItem(`form_${persistKey}`);
-    }
-  }, [persistKey]);
+    removePersistedData();
+  }, [removePersistedData]);
 
   // Check if persisted data exists
-  const hasPersistedData = useCallback(() => {
-    if (!persistKey) return false;
-    return localStorage.getItem(`form_${persistKey}`) !== null;
-  }, [persistKey]);
+  const hasData = useCallback(() => hasPersistedData(), [hasPersistedData]);
 
   return {
     clearPersistedData,
-    hasPersistedData,
+    hasPersistedData: hasData,
   };
 };
 
 // Auto-save hook for forms
 export const useFormAutoSave = (form, saveFunction, options = {}) => {
-  const { 
+  const {
     delay = 2000, // 2 seconds
     enabled = true,
     onSaveSuccess,
-    onSaveError 
+    onSaveError,
   } = options;
 
   useEffect(() => {
@@ -66,7 +68,7 @@ export const useFormAutoSave = (form, saveFunction, options = {}) => {
         await saveFunction(form.values);
         onSaveSuccess?.(form.values);
       } catch (error) {
-        console.error('Auto-save failed:', error);
+        console.error("Auto-save failed:", error);
         onSaveError?.(error, form.values);
       }
     }, delay);

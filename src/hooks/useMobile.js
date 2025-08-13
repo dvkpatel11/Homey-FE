@@ -1,5 +1,6 @@
 // src/hooks/useMobile.js - Mobile-specific utility hooks
 import { useCallback, useEffect, useState } from "react";
+import { useLocalStorage } from "../hooks/useLocalStorage"; // adjust path
 
 /**
  * Hook to detect mobile device and screen orientation
@@ -153,28 +154,8 @@ export function useOnlineStatus() {
 
 // src/hooks/usePersistentState.js - State that persists across app restarts
 export function usePersistentState(key, defaultValue) {
-  const [state, setState] = useState(() => {
-    try {
-      const persistedValue = localStorage.getItem(key);
-      return persistedValue ? JSON.parse(persistedValue) : defaultValue;
-    } catch {
-      return defaultValue;
-    }
-  });
-
-  const setPersistentState = useCallback(
-    (value) => {
-      setState(value);
-      try {
-        localStorage.setItem(key, JSON.stringify(value));
-      } catch (error) {
-        console.error(`Failed to persist state for key "${key}":`, error);
-      }
-    },
-    [key]
-  );
-
-  return [state, setPersistentState];
+  const [state, setState] = useLocalStorage(key, defaultValue);
+  return [state, setState];
 }
 
 // src/hooks/useFormValidation.js - Enhanced form validation for mobile

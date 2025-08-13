@@ -1,26 +1,27 @@
-import client from './client.js';
+import { AuthStorage } from "../../hooks/useLocalStorage"; // adjust path
+import client from "./client.js";
 
 export const authAPI = {
   // Get current user profile
   async getProfile() {
-    const response = await client.get('/api/profile');
+    const response = await client.get("/api/profile");
     return response.data;
   },
 
   // Update user profile
   async updateProfile(data) {
-    const response = await client.put('/api/profile', data);
+    const response = await client.put("/api/profile", data);
     return response.data;
   },
 
   // Upload avatar
   async uploadAvatar(file) {
     const formData = new FormData();
-    formData.append('avatar', file);
-    
-    const response = await client.post('/api/profile/avatar', formData, {
+    formData.append("avatar", file);
+
+    const response = await client.post("/api/profile/avatar", formData, {
       headers: {
-        'Content-Type': 'multipart/form-data',
+        "Content-Type": "multipart/form-data",
       },
     });
     return response.data;
@@ -28,7 +29,7 @@ export const authAPI = {
 
   // Validate invitation code
   async validateInvite(inviteCode) {
-    const response = await client.post('/api/invite/validate', {
+    const response = await client.post("/api/invite/validate", {
       invite_code: inviteCode,
     });
     return response.data;
@@ -36,7 +37,7 @@ export const authAPI = {
 
   // Join household with invite code
   async joinHousehold(inviteCode) {
-    const response = await client.post('/api/invite/join', {
+    const response = await client.post("/api/invite/join", {
       invite_code: inviteCode,
     });
     return response.data;
@@ -44,14 +45,14 @@ export const authAPI = {
 
   // Refresh authentication token
   async refreshToken() {
-    const response = await client.post('/api/auth/refresh');
+    const response = await client.post("/api/auth/refresh");
     return response.data;
   },
 
   // Logout and invalidate token
   async logout() {
-    const response = await client.post('/api/auth/logout');
-    localStorage.removeItem('authToken');
+    const response = await client.post("/api/auth/logout");
+    AuthStorage.removeToken();
     return response.data;
   },
 };

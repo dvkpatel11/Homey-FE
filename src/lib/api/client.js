@@ -1,4 +1,5 @@
 // Enhanced API client with better type safety and caching
+import { AuthStorage } from "../../hooks/useLocalStorage"; // adjust path
 import API_CONFIG from "../config/api.js";
 import mockClient from "./mock-client.js";
 import prodClient from "./prod-client.js";
@@ -177,7 +178,7 @@ const client = new EnhancedApiClient(baseClient);
 // Add authentication middleware
 client.use({
   request: async (config) => {
-    const token = localStorage.getItem("authToken");
+    const token = AuthStorage.getToken();
     if (token) {
       config.headers = {
         ...config.headers,
@@ -191,7 +192,7 @@ client.use({
 // Add global error handling
 client.addResponseInterceptor(async (response) => {
   if (response.status === 401) {
-    localStorage.removeItem("authToken");
+    AuthStorage.removeToken();
     window.location.href = "/login";
   }
   return response;
