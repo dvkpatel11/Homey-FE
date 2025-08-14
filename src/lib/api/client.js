@@ -2,7 +2,6 @@
 import { AuthStorage } from "../../hooks/useLocalStorage"; // adjust path
 import API_CONFIG from "../config/api.js";
 import prodClient from "./prod-client.js";
-
 // Type definitions (consider moving to TypeScript)
 const ApiResponse = {
   validate: (response) => {
@@ -57,7 +56,6 @@ class EnhancedApiClient {
     this.middleware.push(middleware);
   }
 
-  // Add methods for managing interceptors
   addRequestInterceptor(interceptor) {
     this.requestInterceptors.push(interceptor);
   }
@@ -66,7 +64,6 @@ class EnhancedApiClient {
     this.responseInterceptors.push(interceptor);
   }
 
-  // Enhanced request processing
   async processRequest(config) {
     let processedConfig = { ...config };
 
@@ -83,7 +80,6 @@ class EnhancedApiClient {
     return processedConfig;
   }
 
-  // Enhanced response processing with caching
   async processResponse(response, config) {
     let processedResponse = response;
 
@@ -104,7 +100,6 @@ class EnhancedApiClient {
     return processedResponse;
   }
 
-  // Smart caching for GET requests
   async request(config) {
     try {
       const processedConfig = await this.processRequest(config);
@@ -123,7 +118,6 @@ class EnhancedApiClient {
     } catch (error) {
       console.error("API Request Error:", error);
 
-      // Enhanced error handling with context
       const enhancedError = {
         ...error,
         config: config,
@@ -135,12 +129,10 @@ class EnhancedApiClient {
     }
   }
 
-  // Determine if error is retryable
   isRetryableError(error) {
     return error.code === "NETWORK_ERROR" || error.status >= 500 || error.code === "TIMEOUT";
   }
 
-  // Convenience methods with better error context
   get(url, config = {}) {
     return this.request({ ...config, method: "GET", url });
   }
@@ -157,7 +149,6 @@ class EnhancedApiClient {
     return this.request({ ...config, method: "DELETE", url });
   }
 
-  // Utility methods
   clearCache() {
     this.cache.clear();
   }

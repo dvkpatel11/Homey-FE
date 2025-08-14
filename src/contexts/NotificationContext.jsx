@@ -246,6 +246,10 @@ export const NotificationProvider = ({ children }) => {
 
     const wsUrl = import.meta.env.VITE_WS_URL || "ws://localhost:8080/ws";
     const token = useAuthToken();
+    if (wsRef.current) {
+      wsRef.current.close();
+      wsRef.current = null;
+    }
 
     try {
       wsRef.current = new WebSocket(`${wsUrl}?token=${token}&user_id=${user.id}`);
@@ -262,7 +266,7 @@ export const NotificationProvider = ({ children }) => {
           if (wsRef.current?.readyState === WebSocket.OPEN) {
             wsRef.current.send(JSON.stringify({ type: "ping" }));
           }
-        }, 30000); // 30 seconds
+        }, 30000);
 
         wsRef.current.pingInterval = pingInterval;
       };
@@ -315,6 +319,12 @@ export const NotificationProvider = ({ children }) => {
         // Attempt to reconnect with exponential backoff
         if (isAuthenticated && reconnectAttempts.current < 5) {
           const delay = Math.min(1000 * Math.pow(2, reconnectAttempts.current), 30000);
+
+          // Clear any existing timeout
+          if (reconnectTimeoutRef.current) {
+            clearTimeout(reconnectTimeoutRef.current);
+          }
+
           reconnectTimeoutRef.current = setTimeout(() => {
             reconnectAttempts.current++;
             connectWebSocket();

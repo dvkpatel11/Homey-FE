@@ -144,7 +144,9 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setAuthToken(null);
       dispatch({ type: "LOGOUT" });
-      queryClient.clear();
+      queryClient.removeQueries({
+        predicate: (query) => !query.queryKey.includes("public"),
+      });
 
       // Redirect to login
       window.location.href = "/login";
@@ -182,7 +184,9 @@ export const AuthProvider = ({ children }) => {
     };
 
     // Refresh token every 50 minutes (assuming 1 hour expiry)
-    const interval = setInterval(refreshToken, 50 * 60 * 1000);
+    const tokenExp = parseJWT(authToken)?.exp;
+    const refreshIn = tokenExp * 1000 - Date.now() - 5 * 60 * 1000; // 5min buffer
+    setTimeout(refreshToken, refreshIn);
     return () => clearInterval(interval);
   }, [authToken]);
 

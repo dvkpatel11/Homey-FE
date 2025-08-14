@@ -1,29 +1,18 @@
 import { useCallback, useEffect, useState } from "react";
 
 // ============ CORE STORAGE UTILITIES (Non-React) ============
-// These can be used anywhere - API files, utilities, etc.
-
 class LocalStorageManager {
   static set(key, value) {
     try {
       if (value === null || value === undefined) {
         window.localStorage.removeItem(key);
       } else {
-        // FIXED: Don't JSON.stringify simple strings and numbers
-        let valueToStore;
-
-        if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
-          // Store primitive values as-is (no JSON encoding)
-          valueToStore = String(value);
-        } else {
-          // Only JSON.stringify complex objects/arrays
-          valueToStore = JSON.stringify(value);
-        }
-
-        window.localStorage.setItem(key, valueToStore);
+        // FIXED: Always use JSON.stringify for consistency
+        const serializedValue = JSON.stringify(value);
+        window.localStorage.setItem(key, serializedValue);
       }
 
-      // Dispatch custom event for React hooks to listen
+      // Dispatch custom event for React hooks
       window.dispatchEvent(
         new CustomEvent("localStorageChange", {
           detail: { key, value, source: "utility" },
@@ -37,23 +26,16 @@ class LocalStorageManager {
     }
   }
 
-  // Also update the get method to handle this:
   static get(key, defaultValue = null) {
     try {
       const item = window.localStorage.getItem(key);
-      if (!item) return defaultValue;
+      if (item === null) return defaultValue;
 
-      // FIXED: Better detection of JSON vs plain strings
-      if (item.startsWith("{") || item.startsWith("[") || item.startsWith('"')) {
-        // Looks like JSON, try to parse
-        try {
-          return JSON.parse(item);
-        } catch (jsonError) {
-          console.warn(`Failed to parse JSON for key "${key}":`, item);
-          return item; // Return as plain string if JSON parsing fails
-        }
-      } else {
-        // Plain string/number/boolean, return as-is
+      // FIXED: Always try to parse as JSON, fall back to string
+      try {
+        return JSON.parse(item);
+      } catch {
+        // If parsing fails, return the raw string (handles legacy data)
         return item;
       }
     } catch (error) {
@@ -61,6 +43,7 @@ class LocalStorageManager {
       return defaultValue;
     }
   }
+
   static remove(key) {
     return this.set(key, null);
   }
@@ -85,32 +68,25 @@ class LocalStorageManager {
   }
 }
 
-// Export individual utility functions for easier importing
+// Export utilities for non-React usage
 export const getStoredValue = LocalStorageManager.get;
 export const setStoredValue = LocalStorageManager.set;
 export const removeStoredValue = LocalStorageManager.remove;
 export const hasStoredValue = LocalStorageManager.has;
 export const clearStorage = LocalStorageManager.clear;
 
-// ============ REACT HOOK IMPLEMENTATION ============
-
+// ============ MAIN REACT HOOK ============
 export const useLocalStorage = (key, initialValue) => {
-  // State to store our value
   const [storedValue, setStoredValue] = useState(() => {
     return LocalStorageManager.get(key, initialValue);
   });
 
-  // Return a wrapped version of useState's setter function that
-  // persists the new value to localStorage
   const setValue = useCallback(
     (value) => {
       try {
         setStoredValue((prevValue) => {
           const valueToStore = value instanceof Function ? value(prevValue) : value;
-
-          // Use the utility function for consistency
           LocalStorageManager.set(key, valueToStore);
-
           return valueToStore;
         });
       } catch (error) {
@@ -120,7 +96,6 @@ export const useLocalStorage = (key, initialValue) => {
     [key]
   );
 
-  // Listen for changes from other tabs and non-React code
   useEffect(() => {
     const handleStorageChange = (e) => {
       if (e.key === key) {
@@ -130,18 +105,13 @@ export const useLocalStorage = (key, initialValue) => {
     };
 
     const handleCustomStorageChange = (e) => {
-      if (e.detail.key === key && e.detail.source === "utility") {
-        setStoredValue(e.detail.value !== null ? e.detail.value : initialValue);
-      } else if (e.detail.key === "*") {
-        // Handle clear all
-        setStoredValue(initialValue);
+      if (e.detail.key === key || e.detail.key === "*") {
+        const newValue = e.detail.key === "*" ? initialValue : e.detail.value;
+        setStoredValue(newValue);
       }
     };
 
-    // Listen to storage events (changes from other tabs)
     window.addEventListener("storage", handleStorageChange);
-
-    // Listen to custom events (changes from utility functions)
     window.addEventListener("localStorageChange", handleCustomStorageChange);
 
     return () => {
@@ -150,22 +120,13 @@ export const useLocalStorage = (key, initialValue) => {
     };
   }, [key, initialValue]);
 
-  // Clear the value
-  const removeValue = useCallback(() => {
-    setValue(null);
-  }, [setValue]);
-
-  // Check if key exists
-  const hasValue = useCallback(() => {
-    return LocalStorageManager.has(key);
-  }, [key]);
+  const removeValue = useCallback(() => setValue(null), [setValue]);
+  const hasValue = useCallback(() => LocalStorageManager.has(key), [key]);
 
   return [storedValue, setValue, removeValue, hasValue];
 };
 
-// ============ SPECIALIZED STORAGE UTILITIES ============
-
-// Auth utilities (for use in API files)
+// ============ DOMAIN-SPECIFIC STORAGE UTILITIES ============
 export const AuthStorage = {
   getToken: () => LocalStorageManager.get("authToken"),
   setToken: (token) => LocalStorageManager.set("authToken", token),
@@ -173,52 +134,27 @@ export const AuthStorage = {
   hasToken: () => LocalStorageManager.has("authToken"),
 };
 
-// Household utilities (for use in API files)
 export const HouseholdStorage = {
   getActiveId: () => LocalStorageManager.get("activeHouseholdId"),
   setActiveId: (id) => LocalStorageManager.set("activeHouseholdId", id),
   removeActiveId: () => LocalStorageManager.remove("activeHouseholdId"),
-  removeId: (id) => LocalStorageManager.remove(id),
   hasActiveId: () => LocalStorageManager.has("activeHouseholdId"),
 };
 
-// ============ AUTHENTICATION HOOKS ============
+// ============ SPECIALIZED HOOKS ============
+export const useActiveHouseholdId = () => {
+  return useLocalStorage("activeHouseholdId", null);
+};
+
 export const useAuthToken = () => {
   return useLocalStorage("authToken", null);
 };
 
-// ============ HOUSEHOLD HOOKS ============
-export const useActiveHouseholdId = () => {
-  const [rawId, setRawId, removeValue, hasValue] = useLocalStorage("activeHouseholdId", null);
+// Theme hooks
+export const usePersistedTheme = () => useLocalStorage("theme", "system");
+export const useHighContrast = () => useLocalStorage("highContrast", false);
+export const useReducedMotion = () => useLocalStorage("reducedMotion", false);
 
-  const cleanId =
-    rawId && typeof rawId === "string" && rawId.startsWith('"') && rawId.endsWith('"')
-      ? rawId.slice(1, -1) // Remove quotes
-      : rawId;
-
-  const setCleanId = (id) => {
-    // Store without quotes
-    const cleanValue = id && typeof id === "string" && id.startsWith('"') && id.endsWith('"') ? id.slice(1, -1) : id;
-    setRawId(cleanValue);
-  };
-
-  return [cleanId, setCleanId, removeValue, hasValue];
-};
-
-// ============ THEME HOOKS ============
-export const usePersistedTheme = () => {
-  return useLocalStorage("theme", "system");
-};
-
-export const useHighContrast = () => {
-  return useLocalStorage("highContrast", false);
-};
-
-export const useReducedMotion = () => {
-  return useLocalStorage("reducedMotion", false);
-};
-
-// Compound theme hook for all theme-related settings
 export const useThemeSettings = () => {
   const [theme, setTheme] = usePersistedTheme();
   const [highContrast, setHighContrast] = useHighContrast();
@@ -234,7 +170,7 @@ export const useThemeSettings = () => {
   };
 };
 
-// ============ USER PREFERENCES HOOKS ============
+// User preferences
 export const useUserPreferences = () => {
   return useLocalStorage("userPreferences", {
     theme: "system",
@@ -243,7 +179,6 @@ export const useUserPreferences = () => {
   });
 };
 
-// ============ SEARCH HOOKS ============
 export const useRecentSearches = () => {
   const [searches, setSearches] = useLocalStorage("recentSearches", []);
 
@@ -251,68 +186,29 @@ export const useRecentSearches = () => {
     (search) => {
       setSearches((prev) => {
         const filtered = prev.filter((s) => s.toLowerCase() !== search.toLowerCase());
-        return [search, ...filtered].slice(0, 10); // Keep last 10 searches
+        return [search, ...filtered].slice(0, 10);
       });
     },
-    [] // Removed setSearches dependency
+    [setSearches]
   );
 
-  const clearSearches = useCallback(() => {
-    setSearches([]);
-  }, [setSearches]);
+  const clearSearches = useCallback(() => setSearches([]), [setSearches]);
 
   return [searches, addSearch, clearSearches];
 };
 
-// ============ FORM PERSISTENCE HOOKS ============
-export const useDraftData = (key) => {
-  const storageKey = `draft_${key}`;
-  const [draft, setDraft] = useLocalStorage(storageKey, null);
-
-  const saveDraft = useCallback(
-    (data) => {
-      setDraft({
-        data,
-        timestamp: new Date().toISOString(),
-      });
-    },
-    [setDraft]
-  );
-
-  const clearDraft = useCallback(() => {
-    setDraft(null);
-  }, [setDraft]);
-
-  const hasDraft = draft !== null;
-  const draftAge = draft ? Date.now() - new Date(draft.timestamp).getTime() : 0;
-  const isDraftExpired = draftAge > 24 * 60 * 60 * 1000; // 24 hours
-
-  return {
-    draft: isDraftExpired ? null : draft?.data,
-    saveDraft,
-    clearDraft,
-    hasDraft: hasDraft && !isDraftExpired,
-    draftAge,
-  };
-};
-
-// For form persistence
+// Form persistence
 export const useFormPersistence = (formKey) => {
-  const storageKey = `form_${formKey}`;
-  return useLocalStorage(storageKey, null);
+  return useLocalStorage(`form_${formKey}`, null);
 };
 
-// For multi-step form data
+// Multi-step form data
 export const useMultiStepData = (stepKey) => {
-  const storageKey = `multistep_${stepKey}`;
-  const [stepData, setStepData] = useLocalStorage(storageKey, {});
+  const [stepData, setStepData] = useLocalStorage(`multistep_${stepKey}`, {});
 
   const updateStep = useCallback(
     (stepIndex, data) => {
-      setStepData((prev) => ({
-        ...prev,
-        [stepIndex]: data,
-      }));
+      setStepData((prev) => ({ ...prev, [stepIndex]: data }));
     },
     [setStepData]
   );
@@ -327,9 +223,7 @@ export const useMultiStepData = (stepKey) => {
     [setStepData]
   );
 
-  const clearAllSteps = useCallback(() => {
-    setStepData({});
-  }, [setStepData]);
+  const clearAllSteps = useCallback(() => setStepData({}), [setStepData]);
 
   return {
     stepData,
@@ -340,10 +234,9 @@ export const useMultiStepData = (stepKey) => {
   };
 };
 
-// ============ CACHE MANAGEMENT HOOKS ============
+// Cache with TTL
 export const useLocalCache = (key, ttl = 5 * 60 * 1000) => {
-  const storageKey = `cache_${key}`;
-  const [cacheData, setCacheData] = useLocalStorage(storageKey, null);
+  const [cacheData, setCacheData] = useLocalStorage(`cache_${key}`, null);
 
   const setCache = useCallback(
     (data) => {
@@ -368,34 +261,10 @@ export const useLocalCache = (key, ttl = 5 * 60 * 1000) => {
     return cacheData.data;
   }, [cacheData, setCacheData]);
 
-  const clearCache = useCallback(() => {
-    setCacheData(null);
-  }, [setCacheData]);
-
+  const clearCache = useCallback(() => setCacheData(null), [setCacheData]);
   const isValid = cacheData && Date.now() - cacheData.timestamp < cacheData.ttl;
 
-  return {
-    data: isValid ? cacheData.data : null,
-    setCache,
-    getCache,
-    clearCache,
-    isValid,
-  };
-};
-
-// ============ UTILITY HOOKS ============
-// For any storage key (useful for dynamic keys)
-export const useStorageKey = (keyGenerator, initialValue) => {
-  const [key, setKey] = useState(() => (typeof keyGenerator === "function" ? keyGenerator() : keyGenerator));
-
-  const [value, setValue, removeValue, hasValue] = useLocalStorage(key, initialValue);
-
-  const updateKey = useCallback((newKeyOrGenerator) => {
-    const newKey = typeof newKeyOrGenerator === "function" ? newKeyOrGenerator() : newKeyOrGenerator;
-    setKey(newKey);
-  }, []);
-
-  return [value, setValue, removeValue, hasValue, updateKey];
+  return { data: isValid ? cacheData.data : null, setCache, getCache, clearCache, isValid };
 };
 
 export default useLocalStorage;

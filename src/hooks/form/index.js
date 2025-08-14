@@ -1,11 +1,9 @@
-// Barrel exports for tree-shaking
-export { useBasicForm } from './useBasicForm';
-export { useFormValidation, createValidationSchema, validationRules } from './useFormValidation';
-export { useFieldArray } from './useFieldArray';
-export { useMultiStepForm } from './useMultiStepForm';
-export { useFormPersistence, useFormAutoSave } from './useFormPersistence';
+export { useBasicForm } from "./useBasicForm";
+export { useFieldArray } from "./useFieldArray";
+export { useFormAutoSave, useFormPersistence } from "./useFormPersistence";
+export { createValidationSchema, useFormValidation, validationRules } from "./useFormValidation";
+export { useMultiStepForm } from "./useMultiStepForm";
 
-// Convenience composable hook for common use cases
 export const useForm = (initialValues = {}, options = {}) => {
   const {
     validationSchema,
@@ -16,27 +14,23 @@ export const useForm = (initialValues = {}, options = {}) => {
     ...formOptions
   } = options;
 
-  // Import hooks dynamically to avoid loading unused code
-  const { useBasicForm } = require('./useBasicForm');
+  // Use static imports
   const form = useBasicForm(initialValues, formOptions);
 
   // Add validation if schema provided
   let validation = null;
   if (validationSchema) {
-    const { useFormValidation } = require('./useFormValidation');
     validation = useFormValidation(validationSchema, form, { validateOnChange, validateOnBlur });
   }
 
   // Add persistence if key provided
   let persistence = null;
   if (persistKey) {
-    const { useFormPersistence } = require('./useFormPersistence');
     persistence = useFormPersistence(form, persistKey);
   }
 
   // Add auto-save if enabled
   if (autoSave?.enabled) {
-    const { useFormAutoSave } = require('./useFormPersistence');
     useFormAutoSave(form, autoSave.saveFunction, autoSave.options);
   }
 
