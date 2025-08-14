@@ -2,49 +2,61 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Enhanced CSS Variables with Violet Theme */
+/* Enhanced CSS Variables with Proper Light/Dark Inversion */
 :root {
-  /* Violet color system */
+  /* Light Theme - Violet color system */
   --homey-primary: #7c3aed;
-  --homey-primary-bright: #a78bfa;
+  --homey-primary-bright: #8b5cf6;
   --homey-primary-dark: #6d28d9;
 
-  /* Glass morphism */
+  /* Light Theme - Glass morphism */
   --homey-glass-bg: rgba(255, 255, 255, 0.15);
-  --homey-glass-border: rgba(255, 255, 255, 0.15);
+  --homey-glass-border: rgba(255, 255, 255, 0.2);
   --homey-glass-violet: rgba(139, 92, 246, 0.1);
   --glass-blur: 16px;
 
-  /* Background */
+  /* Light Theme - Background */
   --homey-bg: #f5f5dc; /* Beige for light mode */
 
-  /* Text colors */
+  /* Light Theme - Text colors */
   --homey-text: #0f172a;
   --homey-text-secondary: #475569;
   --homey-text-muted: #64748b;
 
-  /* Status colors */
+  /* Semantic colors */
   --color-success: #10b981;
   --color-warning: #f59e0b;
   --color-error: #ef4444;
   --color-info: #3b82f6;
+  --color-cancel: #6b7280;
 }
 
-/* Dark theme overrides */
+/* Dark theme with proper inversion */
 .dark {
-  --homey-primary: #8b5cf6;
-  --homey-primary-bright: #a78bfa;
-  --homey-primary-dark: #7c3aed;
+  /* Dark Theme - Inverted violet system */
+  --homey-primary: #a78bfa; /* Brighter purple for dark mode */
+  --homey-primary-bright: #c4b5fd; /* Even brighter for dark */
+  --homey-primary-dark: #8b5cf6; /* Medium purple for dark */
 
+  /* Dark Theme - Glass morphism */
   --homey-glass-bg: rgba(0, 0, 0, 0.25);
   --homey-glass-border: rgba(255, 255, 255, 0.1);
   --homey-glass-violet: rgba(139, 92, 246, 0.15);
 
+  /* Dark Theme - Background */
   --homey-bg: #0a0a0a; /* Material black for dark mode */
 
+  /* Dark Theme - Inverted text colors */
   --homey-text: #f8fafc;
   --homey-text-secondary: rgba(248, 250, 252, 0.8);
   --homey-text-muted: rgba(248, 250, 252, 0.6);
+
+  /* Dark theme semantic colors - slightly adjusted */
+  --color-success: #34d399;
+  --color-warning: #fbbf24;
+  --color-error: #f87171;
+  --color-info: #60a5fa;
+  --color-cancel: #9ca3af;
 }
 
 /* Base styles for mobile-first */
@@ -96,7 +108,7 @@
   }
 }
 
-/* Enhanced component layer */
+/* Enhanced component layer with semantic button styles */
 @layer components {
   /* Glass card variants */
   .glass-card-subtle {
@@ -117,6 +129,63 @@
     background: var(--homey-glass-violet);
     border-color: rgba(139, 92, 246, 0.2);
     box-shadow: 0 8px 32px rgba(139, 92, 246, 0.15);
+  }
+
+  /* Enhanced semantic button styles */
+  .btn-primary {
+    background: var(--homey-primary);
+    color: white;
+    border: 1px solid var(--homey-primary);
+    &:hover {
+      background: var(--homey-primary-bright);
+      border-color: var(--homey-primary-bright);
+      transform: translateY(-1px);
+      box-shadow: 0 10px 25px rgba(139, 92, 246, 0.3);
+    }
+  }
+
+  .btn-success {
+    background: var(--color-success);
+    color: white;
+    border: 1px solid var(--color-success);
+    &:hover {
+      background: #059669;
+      border-color: #059669;
+      transform: translateY(-1px);
+      box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+    }
+  }
+
+  .btn-danger {
+    background: var(--color-error);
+    color: white;
+    border: 1px solid var(--color-error);
+    &:hover {
+      background: #dc2626;
+      border-color: #dc2626;
+      transform: translateY(-1px);
+      box-shadow: 0 10px 25px rgba(239, 68, 68, 0.3);
+    }
+  }
+
+  .btn-cancel {
+    background: rgba(107, 114, 128, 0.1);
+    color: var(--color-cancel);
+    border: 1px solid rgba(107, 114, 128, 0.3);
+    &:hover {
+      background: rgba(107, 114, 128, 0.2);
+      border-color: rgba(107, 114, 128, 0.5);
+    }
+  }
+
+  .btn-secondary {
+    background: var(--homey-glass-bg);
+    color: var(--homey-text);
+    border: 1px solid var(--homey-glass-border);
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--homey-primary);
+    }
   }
 }
 

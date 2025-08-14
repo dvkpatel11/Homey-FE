@@ -118,7 +118,6 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, members, isAdmin }) => {
     }
   };
 
-  // Set default due date to tomorrow
   const getTomorrowDate = () => {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
@@ -133,7 +132,6 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, members, isAdmin }) => {
       maxWidth="md"
     >
       <div className="space-y-4">
-        {/* Task Title */}
         <GlassInput
           label="Task Title"
           placeholder="What needs to be done?"
@@ -143,7 +141,6 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, members, isAdmin }) => {
           required
         />
 
-        {/* Category and Priority */}
         <div className="grid grid-cols-2 gap-4">
           <GlassSelect
             label="Category"
@@ -162,7 +159,6 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, members, isAdmin }) => {
           />
         </div>
 
-        {/* Assignment and Due Date */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <GlassSelect
             label="Assign To"
@@ -183,7 +179,6 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, members, isAdmin }) => {
           />
         </div>
 
-        {/* Description */}
         <GlassTextarea
           label="Description (Optional)"
           placeholder="Add any additional details..."
@@ -192,7 +187,6 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, members, isAdmin }) => {
           rows={3}
         />
 
-        {/* Recurring Task Options (Admin Only) */}
         {isAdmin && (
           <div className="space-y-3 p-4 glass-input rounded-glass">
             <div className="flex items-center space-x-3">
@@ -225,17 +219,16 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, members, isAdmin }) => {
           </div>
         )}
 
-        {/* Error Message */}
         {errors.submit && (
           <div className="p-3 bg-red-500/20 border border-red-500/30 rounded-glass">
             <GlassText className="text-red-300 text-sm">{errors.submit}</GlassText>
           </div>
         )}
 
-        {/* Action Buttons */}
+        {/* Semantic button colors */}
         <div className="flex space-x-3 pt-4">
           <GlassButton
-            variant="ghost"
+            variant="cancel"
             onClick={handleClose}
             className="flex-1"
             disabled={isSubmitting}
@@ -244,7 +237,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, members, isAdmin }) => {
           </GlassButton>
           
           <GlassButton
-            variant="primary"
+            variant="success"
             onClick={handleSubmit}
             loading={isSubmitting}
             icon={Plus}

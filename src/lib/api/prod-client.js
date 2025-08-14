@@ -3,8 +3,8 @@ import API_CONFIG from "../config/api.js";
 
 // Create axios instance for production
 const prodClient = axios.create({
-  baseURL: API_CONFIG.PROD.BASE_URL,
-  timeout: API_CONFIG.PROD.TIMEOUT,
+  baseURL: API_CONFIG.BASE_URL,
+  timeout: API_CONFIG.TIMEOUT,
   headers: {
     "Content-Type": "application/json",
   },
