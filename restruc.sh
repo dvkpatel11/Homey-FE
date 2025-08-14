@@ -1,658 +1,726 @@
 #!/bin/bash
 
-# Script to create modular form hooks structure
-# Run this from your project root directory
+echo "Creating household onboarding wizard and fixing task components..."
 
-echo "🚀 Creating modular form hooks structure..."
+# Create household onboarding wizard
+cat > src/components/features/household/HouseholdOnboarding.jsx << 'EOF'
+import { useState } from "react";
+import { Users, Plus, UserPlus, Home, ArrowRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import CreateHouseholdModal from "./CreateHouseholdModal.jsx";
+import JoinHouseholdModal from "./JoinHouseholdModal.jsx";
+import GlassContainer from "../../ui/GlassContainer.jsx";
+import GlassButton from "../../ui/GlassButton.jsx";
+import GlassHeading from "../../ui/GlassHeading.jsx";
+import GlassText from "../../ui/GlassText.jsx";
+import { useHousehold } from "../../../contexts/HouseholdContext.jsx";
 
-# Create the form hooks directory
-mkdir -p src/hooks/form
+const HouseholdOnboarding = () => {
+  const { households, isLoading } = useHousehold();
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showJoinModal, setShowJoinModal] = useState(false);
 
-# Delete existing useForm.js if it exists
-if [ -f "src/hooks/useForm.js" ]; then
-    echo "🗑️  Removing old useForm.js..."
-    rm src/hooks/useForm.js
-fi
-
-echo "📁 Creating form hook files..."
-
-# Create useBasicForm.js
-cat > src/hooks/form/useBasicForm.js << 'EOF'
-// Core form hook - minimal functionality
-import { useState, useCallback, useRef, useEffect } from 'react';
-
-export const useBasicForm = (initialValues = {}, options = {}) => {
-  const { onSubmit, resetOnSubmit = false } = options;
-  
-  const [values, setValues] = useState(initialValues);
-  const [errors, setErrors] = useState({});
-  const [touched, setTouched] = useState({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isDirty, setIsDirty] = useState(false);
-
-  const initialValuesRef = useRef(initialValues);
-
-  // Check if form is dirty
-  useEffect(() => {
-    const hasChanged = Object.keys(values).some(
-      key => values[key] !== initialValuesRef.current[key]
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-homey-bg checkered-violet flex items-center justify-center p-6">
+        <GlassContainer variant="strong" padding="lg" className="max-w-md w-full text-center">
+          <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4" />
+          <GlassText variant="secondary">Loading your households...</GlassText>
+        </GlassContainer>
+      </div>
     );
-    setIsDirty(hasChanged);
-  }, [values]);
+  }
 
-  // Set field value
-  const setValue = useCallback((name, value) => {
-    setValues(prev => ({ ...prev, [name]: value }));
-    
-    // Clear field error when user starts typing
-    if (errors[name]) {
-      setErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors[name];
-        return newErrors;
-      });
-    }
-  }, [errors]);
+  return (
+    <div className="min-h-screen bg-homey-bg checkered-violet flex items-center justify-center p-6">
+      <motion.div
+        className="max-w-lg w-full space-y-8"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        {/* Welcome Header */}
+        <div className="text-center space-y-4">
+          <motion.div
+            className="w-20 h-20 bg-gradient-to-br from-primary to-primary-dark 
+                       rounded-glass-xl mx-auto flex items-center justify-center shadow-glass-violet"
+            whileHover={{ scale: 1.05, rotate: 5 }}
+          >
+            <Home className="w-10 h-10 text-white" />
+          </motion.div>
+          
+          <div>
+            <GlassHeading level={1} className="mb-2">Welcome to Homey</GlassHeading>
+            <GlassText variant="secondary" className="text-lg">
+              Your smart household management companion
+            </GlassText>
+          </div>
+        </div>
 
-  // Set multiple values
-  const setValues = useCallback((newValues) => {
-    setValues(prev => ({ ...prev, ...newValues }));
-  }, []);
+        {/* Onboarding Options */}
+        <GlassContainer variant="strong" padding="lg">
+          <div className="space-y-6">
+            <div className="text-center">
+              <GlassHeading level={3} className="mb-2">Get Started</GlassHeading>
+              <GlassText variant="secondary">
+                Create a new household or join an existing one
+              </GlassText>
+            </div>
 
-  // Handle input change
-  const handleChange = useCallback((event) => {
-    const { name, value, type, checked } = event.target;
-    const fieldValue = type === 'checkbox' ? checked : value;
-    setValue(name, fieldValue);
-  }, [setValue]);
+            <div className="space-y-4">
+              {/* Create Household Option */}
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <GlassButton
+                  variant="primary"
+                  size="lg"
+                  icon={Plus}
+                  rightIcon={ArrowRight}
+                  onClick={() => setShowCreateModal(true)}
+                  className="w-full justify-between"
+                >
+                  <div className="text-left">
+                    <div className="font-medium">Create New Household</div>
+                    <div className="text-sm opacity-80">Start fresh and invite others</div>
+                  </div>
+                </GlassButton>
+              </motion.div>
 
-  // Handle input blur
-  const handleBlur = useCallback((event) => {
-    const { name } = event.target;
-    setTouched(prev => ({ ...prev, [name]: true }));
-  }, []);
+              {/* Join Household Option */}
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <GlassButton
+                  variant="secondary"
+                  size="lg"
+                  icon={UserPlus}
+                  rightIcon={ArrowRight}
+                  onClick={() => setShowJoinModal(true)}
+                  className="w-full justify-between"
+                >
+                  <div className="text-left">
+                    <div className="font-medium">Join Existing Household</div>
+                    <div className="text-sm opacity-70">Use an invite code</div>
+                  </div>
+                </GlassButton>
+              </motion.div>
+            </div>
 
-  // Set field error
-  const setFieldError = useCallback((name, error) => {
-    setErrors(prev => ({ ...prev, [name]: error }));
-  }, []);
+            {/* Existing Households */}
+            {households && households.length > 0 && (
+              <div className="pt-6 border-t border-glass-border">
+                <GlassText variant="secondary" className="text-sm mb-3">
+                  Your Households:
+                </GlassText>
+                <div className="space-y-2">
+                  {households.map((household) => (
+                    <div
+                      key={household.id}
+                      className="flex items-center space-x-3 glass-input p-3 rounded-glass"
+                    >
+                      <Users className="w-4 h-4 text-glass-muted flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-glass truncate">{household.name}</div>
+                        <div className="text-xs text-glass-muted">
+                          {household.member_count} member{household.member_count !== 1 ? 's' : ''}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </GlassContainer>
 
-  // Clear field error
-  const clearFieldError = useCallback((name) => {
-    setErrors(prev => {
-      const newErrors = { ...prev };
-      delete newErrors[name];
-      return newErrors;
-    });
-  }, []);
+        {/* Feature Preview */}
+        <GlassContainer variant="subtle" padding="md">
+          <div className="text-center space-y-3">
+            <GlassHeading level={4}>What's Inside</GlassHeading>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="flex items-center space-x-2">
+                <div className="w-6 h-6 bg-amber-500/20 rounded-md flex items-center justify-center">
+                  📋
+                </div>
+                <span className="text-glass-secondary">Task Management</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-6 h-6 bg-emerald-500/20 rounded-md flex items-center justify-center">
+                  💰
+                </div>
+                <span className="text-glass-secondary">Bill Splitting</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-6 h-6 bg-blue-500/20 rounded-md flex items-center justify-center">
+                  💬
+                </div>
+                <span className="text-glass-secondary">Group Chat</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-6 h-6 bg-purple-500/20 rounded-md flex items-center justify-center">
+                  📊
+                </div>
+                <span className="text-glass-secondary">Analytics</span>
+              </div>
+            </div>
+          </div>
+        </GlassContainer>
+      </motion.div>
 
-  // Handle form submission
-  const handleSubmit = useCallback(async (event) => {
-    if (event) {
-      event.preventDefault();
-      event.stopPropagation();
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      let result = { success: true, data: values };
-      if (onSubmit) {
-        result = await onSubmit(values);
-      }
-
-      if (resetOnSubmit && result.success) {
-        reset();
-      }
-
-      return result;
-    } catch (error) {
-      console.error('Form submission error:', error);
-      return { success: false, error: error.message };
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [values, onSubmit, resetOnSubmit]);
-
-  // Reset form
-  const reset = useCallback((newValues = initialValues) => {
-    setValues(newValues);
-    setErrors({});
-    setTouched({});
-    setIsDirty(false);
-  }, [initialValues]);
-
-  // Get field props for easy binding
-  const getFieldProps = useCallback((name) => ({
-    name,
-    value: values[name] || '',
-    onChange: handleChange,
-    onBlur: handleBlur,
-  }), [values, handleChange, handleBlur]);
-
-  // Get field state
-  const getFieldState = useCallback((name) => ({
-    value: values[name],
-    error: errors[name],
-    touched: touched[name],
-    hasError: Boolean(errors[name]),
-    isTouched: Boolean(touched[name]),
-  }), [values, errors, touched]);
-
-  const isValid = Object.keys(errors).length === 0;
-
-  return {
-    values,
-    errors,
-    touched,
-    isSubmitting,
-    isDirty,
-    isValid,
-    setValue,
-    setValues,
-    setFieldError,
-    clearFieldError,
-    handleChange,
-    handleBlur,
-    handleSubmit,
-    reset,
-    getFieldProps,
-    getFieldState,
-  };
-};
-EOF
-
-# Create useFormValidation.js
-cat > src/hooks/form/useFormValidation.js << 'EOF'
-// Form validation hook - separate import
-import { useCallback } from 'react';
-import { useDebouncedValidation } from '../useDebounce';
-
-export const useFormValidation = (validationSchema, form, options = {}) => {
-  const { validateOnChange = false, validateOnBlur = true } = options;
-  
-  const { validate: debouncedValidate, isValidating } = useDebouncedValidation(
-    validationSchema,
-    300
+      {/* Modals */}
+      <CreateHouseholdModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+      />
+      
+      <JoinHouseholdModal
+        isOpen={showJoinModal}
+        onClose={() => setShowJoinModal(false)}
+      />
+    </div>
   );
+};
 
-  // Enhanced setValue with validation
-  const setValueWithValidation = useCallback((name, value) => {
-    form.setValue(name, value);
+export default HouseholdOnboarding;
+EOF
+
+# Create CreateHouseholdModal
+cat > src/components/features/household/CreateHouseholdModal.jsx << 'EOF'
+import { useState } from "react";
+import { Home, Users, Plus } from "lucide-react";
+import toast from "react-hot-toast";
+import GlassModal from "../../ui/GlassModal.jsx";
+import GlassInput from "../../ui/GlassInput.jsx";
+import GlassTextarea from "../../ui/GlassTextarea.jsx";
+import GlassButton from "../../ui/GlassButton.jsx";
+import GlassText from "../../ui/GlassText.jsx";
+import { useHousehold } from "../../../contexts/HouseholdContext.jsx";
+
+const CreateHouseholdModal = ({ isOpen, onClose }) => {
+  const { createHousehold, isCreatingHousehold } = useHousehold();
+  const [formData, setFormData] = useState({
+    name: '',
+    description: ''
+  });
+  const [errors, setErrors] = useState({});
+
+  const validateForm = () => {
+    const newErrors = {};
     
-    if (validateOnChange && validationSchema) {
-      debouncedValidate({ ...form.values, [name]: value });
+    if (!formData.name.trim()) {
+      newErrors.name = 'Household name is required';
+    } else if (formData.name.trim().length < 2) {
+      newErrors.name = 'Household name must be at least 2 characters';
+    } else if (formData.name.trim().length > 50) {
+      newErrors.name = 'Household name must be less than 50 characters';
     }
-  }, [form, validateOnChange, validationSchema, debouncedValidate]);
 
-  // Enhanced handleBlur with validation
-  const handleBlurWithValidation = useCallback((event) => {
-    form.handleBlur(event);
-    
-    if (validateOnBlur && validationSchema) {
-      debouncedValidate(form.values);
-    }
-  }, [form, validateOnBlur, validationSchema, debouncedValidate]);
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
-  // Validate entire form
-  const validate = useCallback(async () => {
-    if (!validationSchema) return {};
-    
+  const handleSubmit = async () => {
+    if (!validateForm()) return;
+
     try {
-      const validationErrors = await validationSchema(form.values);
-      form.setErrors?.(validationErrors || {});
-      return validationErrors || {};
+      await createHousehold({
+        name: formData.name.trim(),
+        description: formData.description.trim()
+      });
+      
+      toast.success('Household created successfully!');
+      handleClose();
     } catch (error) {
-      console.error('Validation error:', error);
-      return { _global: 'Validation failed' };
+      console.error('Failed to create household:', error);
+      setErrors({ submit: 'Failed to create household. Please try again.' });
     }
-  }, [form.values, validationSchema, form]);
-
-  return {
-    isValidating,
-    validate,
-    setValueWithValidation,
-    handleBlurWithValidation,
   };
-};
 
-// Validation schema builder
-export const createValidationSchema = (rules) => {
-  return async (values) => {
-    const errors = {};
+  const handleClose = () => {
+    setFormData({ name: '', description: '' });
+    setErrors({});
+    onClose();
+  };
 
-    for (const [field, fieldRules] of Object.entries(rules)) {
-      const value = values[field];
-
-      for (const rule of fieldRules) {
-        try {
-          const isValid = await rule.validate(value, values);
-          if (!isValid) {
-            errors[field] = rule.message;
-            break;
-          }
-        } catch (error) {
-          errors[field] = error.message;
-          break;
-        }
-      }
+  const updateFormData = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: undefined }));
     }
-
-    return errors;
   };
+
+  return (
+    <GlassModal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title="Create New Household"
+      maxWidth="md"
+    >
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="text-center space-y-3">
+          <div className="w-16 h-16 bg-gradient-to-br from-primary to-primary-dark 
+                          rounded-glass-lg mx-auto flex items-center justify-center">
+            <Home className="w-8 h-8 text-white" />
+          </div>
+          <GlassText variant="secondary">
+            Set up your new household and start managing tasks, expenses, and more together.
+          </GlassText>
+        </div>
+
+        {/* Form */}
+        <div className="space-y-4">
+          <GlassInput
+            label="Household Name"
+            placeholder="The Smith Family, Roommates, etc."
+            value={formData.name}
+            onChange={(e) => updateFormData('name', e.target.value)}
+            error={errors.name}
+            icon={Users}
+            required
+          />
+
+          <GlassTextarea
+            label="Description (Optional)"
+            placeholder="Tell us about your household..."
+            value={formData.description}
+            onChange={(e) => updateFormData('description', e.target.value)}
+            rows={3}
+          />
+        </div>
+
+        {/* Info Box */}
+        <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-glass">
+          <GlassText className="text-blue-300 text-sm">
+            💡 As the household creator, you'll be the admin and can invite members, 
+            create recurring tasks, and manage household settings.
+          </GlassText>
+        </div>
+
+        {/* Error Message */}
+        {errors.submit && (
+          <div className="p-3 bg-red-500/20 border border-red-500/30 rounded-glass">
+            <GlassText className="text-red-300 text-sm">{errors.submit}</GlassText>
+          </div>
+        )}
+
+        {/* Action Buttons */}
+        <div className="flex space-x-3 pt-4">
+          <GlassButton
+            variant="ghost"
+            onClick={handleClose}
+            className="flex-1"
+            disabled={isCreatingHousehold}
+          >
+            Cancel
+          </GlassButton>
+          
+          <GlassButton
+            variant="primary"
+            onClick={handleSubmit}
+            loading={isCreatingHousehold}
+            icon={Plus}
+            className="flex-1"
+          >
+            Create Household
+          </GlassButton>
+        </div>
+      </div>
+    </GlassModal>
+  );
 };
 
-// Common validation rules
-export const validationRules = {
-  required: (message = 'This field is required') => ({
-    validate: (value) => {
-      if (Array.isArray(value)) return value.length > 0;
-      if (typeof value === 'string') return value.trim().length > 0;
-      return value != null && value !== '';
-    },
-    message,
-  }),
-
-  email: (message = 'Please enter a valid email address') => ({
-    validate: (value) => {
-      if (!value) return true;
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      return emailRegex.test(value);
-    },
-    message,
-  }),
-
-  minLength: (min, message) => ({
-    validate: (value) => {
-      if (!value) return true;
-      return value.length >= min;
-    },
-    message: message || `Must be at least ${min} characters`,
-  }),
-
-  maxLength: (max, message) => ({
-    validate: (value) => {
-      if (!value) return true;
-      return value.length <= max;
-    },
-    message: message || `Must be no more than ${max} characters`,
-  }),
-
-  pattern: (regex, message = 'Invalid format') => ({
-    validate: (value) => {
-      if (!value) return true;
-      return regex.test(value);
-    },
-    message,
-  }),
-
-  min: (min, message) => ({
-    validate: (value) => {
-      if (value === '' || value == null) return true;
-      return Number(value) >= min;
-    },
-    message: message || `Must be at least ${min}`,
-  }),
-
-  max: (max, message) => ({
-    validate: (value) => {
-      if (value === '' || value == null) return true;
-      return Number(value) <= max;
-    },
-    message: message || `Must be no more than ${max}`,
-  }),
-
-  matches: (otherField, message = 'Fields must match') => ({
-    validate: (value, allValues) => {
-      return value === allValues[otherField];
-    },
-    message,
-  }),
-};
+export default CreateHouseholdModal;
 EOF
 
-# Create useFieldArray.js
-cat > src/hooks/form/useFieldArray.js << 'EOF'
-// Field array hook for dynamic form fields - separate import
-import { useCallback } from 'react';
+# Create JoinHouseholdModal
+cat > src/components/features/household/JoinHouseholdModal.jsx << 'EOF'
+import { useState } from "react";
+import { UserPlus, Key, Users } from "lucide-react";
+import toast from "react-hot-toast";
+import GlassModal from "../../ui/GlassModal.jsx";
+import GlassInput from "../../ui/GlassInput.jsx";
+import GlassButton from "../../ui/GlassButton.jsx";
+import GlassText from "../../ui/GlassText.jsx";
+import { authAPI } from "../../../lib/api/index.js";
 
-export const useFieldArray = (name, form) => {
-  const fieldValue = form.values[name] || [];
+const JoinHouseholdModal = ({ isOpen, onClose }) => {
+  const [inviteCode, setInviteCode] = useState('');
+  const [householdInfo, setHouseholdInfo] = useState(null);
+  const [errors, setErrors] = useState({});
+  const [isValidating, setIsValidating] = useState(false);
+  const [isJoining, setIsJoining] = useState(false);
 
-  const append = useCallback((value) => {
-    const newArray = [...fieldValue, value];
-    form.setValue(name, newArray);
-  }, [fieldValue, form, name]);
-
-  const prepend = useCallback((value) => {
-    const newArray = [value, ...fieldValue];
-    form.setValue(name, newArray);
-  }, [fieldValue, form, name]);
-
-  const remove = useCallback((index) => {
-    const newArray = fieldValue.filter((_, i) => i !== index);
-    form.setValue(name, newArray);
-  }, [fieldValue, form, name]);
-
-  const insert = useCallback((index, value) => {
-    const newArray = [...fieldValue];
-    newArray.splice(index, 0, value);
-    form.setValue(name, newArray);
-  }, [fieldValue, form, name]);
-
-  const move = useCallback((from, to) => {
-    const newArray = [...fieldValue];
-    const item = newArray.splice(from, 1)[0];
-    newArray.splice(to, 0, item);
-    form.setValue(name, newArray);
-  }, [fieldValue, form, name]);
-
-  const swap = useCallback((indexA, indexB) => {
-    const newArray = [...fieldValue];
-    [newArray[indexA], newArray[indexB]] = [newArray[indexB], newArray[indexA]];
-    form.setValue(name, newArray);
-  }, [fieldValue, form, name]);
-
-  const replace = useCallback((index, value) => {
-    const newArray = [...fieldValue];
-    newArray[index] = value;
-    form.setValue(name, newArray);
-  }, [fieldValue, form, name]);
-
-  const clear = useCallback(() => {
-    form.setValue(name, []);
-  }, [form, name]);
-
-  return {
-    fields: fieldValue,
-    append,
-    prepend,
-    remove,
-    insert,
-    move,
-    swap,
-    replace,
-    clear,
-    length: fieldValue.length,
-  };
-};
-EOF
-
-# Create useMultiStepForm.js
-cat > src/hooks/form/useMultiStepForm.js << 'EOF'
-// Multi-step form hook - separate import
-import { useState, useCallback, useEffect } from 'react';
-
-export const useMultiStepForm = (steps = [], options = {}) => {
-  const { persistKey, onStepChange } = options;
-  const [currentStep, setCurrentStep] = useState(0);
-  const [completedSteps, setCompletedSteps] = useState(new Set());
-  const [stepData, setStepData] = useState({});
-
-  // Load from localStorage if persist key is provided
-  useEffect(() => {
-    if (persistKey) {
-      const saved = localStorage.getItem(`multistep_${persistKey}`);
-      if (saved) {
-        const { step, completed, data } = JSON.parse(saved);
-        setCurrentStep(step);
-        setCompletedSteps(new Set(completed));
-        setStepData(data || {});
-      }
+  const validateInviteCode = async () => {
+    if (!inviteCode.trim()) {
+      setErrors({ code: 'Please enter an invite code' });
+      return;
     }
-  }, [persistKey]);
 
-  // Save to localStorage
-  useEffect(() => {
-    if (persistKey) {
-      localStorage.setItem(`multistep_${persistKey}`, JSON.stringify({
-        step: currentStep,
-        completed: Array.from(completedSteps),
-        data: stepData,
-      }));
-    }
-  }, [currentStep, completedSteps, stepData, persistKey]);
+    setIsValidating(true);
+    setErrors({});
 
-  const goToStep = useCallback((step) => {
-    if (step >= 0 && step < steps.length) {
-      setCurrentStep(step);
-      onStepChange?.(step, steps[step]);
-    }
-  }, [steps, onStepChange]);
-
-  const nextStep = useCallback(() => {
-    if (currentStep < steps.length - 1) {
-      setCompletedSteps(prev => new Set([...prev, currentStep]));
-      goToStep(currentStep + 1);
-    }
-  }, [currentStep, steps.length, goToStep]);
-
-  const prevStep = useCallback(() => {
-    if (currentStep > 0) {
-      goToStep(currentStep - 1);
-    }
-  }, [currentStep, goToStep]);
-
-  const completeStep = useCallback((step = currentStep) => {
-    setCompletedSteps(prev => new Set([...prev, step]));
-  }, [currentStep]);
-
-  const setStepFormData = useCallback((step, data) => {
-    setStepData(prev => ({ ...prev, [step]: data }));
-  }, []);
-
-  const getStepFormData = useCallback((step) => {
-    return stepData[step] || {};
-  }, [stepData]);
-
-  const getAllFormData = useCallback(() => {
-    return stepData;
-  }, [stepData]);
-
-  const reset = useCallback(() => {
-    setCurrentStep(0);
-    setCompletedSteps(new Set());
-    setStepData({});
-    if (persistKey) {
-      localStorage.removeItem(`multistep_${persistKey}`);
-    }
-  }, [persistKey]);
-
-  const isFirstStep = currentStep === 0;
-  const isLastStep = currentStep === steps.length - 1;
-  const isStepCompleted = useCallback((step) => completedSteps.has(step), [completedSteps]);
-  const canGoToStep = useCallback((step) => step <= currentStep || completedSteps.has(step - 1), [currentStep, completedSteps]);
-
-  return {
-    // Current state
-    currentStep,
-    currentStepData: steps[currentStep],
-    completedSteps: Array.from(completedSteps),
-    
-    // Navigation
-    isFirstStep,
-    isLastStep,
-    goToStep,
-    nextStep,
-    prevStep,
-    reset,
-    
-    // Step management
-    completeStep,
-    isStepCompleted,
-    canGoToStep,
-    
-    // Data management
-    setStepFormData,
-    getStepFormData,
-    getAllFormData,
-    
-    // Progress
-    progress: ((currentStep + 1) / steps.length) * 100,
-    completionRate: (completedSteps.size / steps.length) * 100,
-  };
-};
-EOF
-
-# Create useFormPersistence.js
-cat > src/hooks/form/useFormPersistence.js << 'EOF'
-// Form persistence hook - separate import
-import { useEffect, useCallback } from 'react';
-
-export const useFormPersistence = (form, persistKey) => {
-  // Load persisted data on mount
-  useEffect(() => {
-    if (!persistKey) return;
-    
     try {
-      const saved = localStorage.getItem(`form_${persistKey}`);
-      if (saved) {
-        const parsedData = JSON.parse(saved);
-        // Merge with current values to preserve any defaults
-        const mergedValues = { ...form.values, ...parsedData };
-        form.setValues?.(mergedValues);
-      }
+      const response = await authAPI.validateInvite(inviteCode.trim());
+      setHouseholdInfo(response.data);
     } catch (error) {
-      console.error('Failed to load persisted form data:', error);
+      console.error('Failed to validate invite:', error);
+      setErrors({ 
+        code: error.response?.data?.message || 'Invalid invite code. Please check and try again.' 
+      });
+      setHouseholdInfo(null);
+    } finally {
+      setIsValidating(false);
     }
-  }, [persistKey]); // Don't include form in deps to avoid re-running
-
-  // Save data when form values change
-  useEffect(() => {
-    if (!persistKey || !form.isDirty) return;
-    
-    try {
-      localStorage.setItem(`form_${persistKey}`, JSON.stringify(form.values));
-    } catch (error) {
-      console.error('Failed to persist form data:', error);
-    }
-  }, [form.values, form.isDirty, persistKey]);
-
-  // Clear persisted data
-  const clearPersistedData = useCallback(() => {
-    if (persistKey) {
-      localStorage.removeItem(`form_${persistKey}`);
-    }
-  }, [persistKey]);
-
-  // Check if persisted data exists
-  const hasPersistedData = useCallback(() => {
-    if (!persistKey) return false;
-    return localStorage.getItem(`form_${persistKey}`) !== null;
-  }, [persistKey]);
-
-  return {
-    clearPersistedData,
-    hasPersistedData,
   };
+
+  const handleJoinHousehold = async () => {
+    setIsJoining(true);
+    try {
+      await authAPI.joinHousehold(inviteCode.trim());
+      toast.success(`Successfully joined ${householdInfo.name}!`);
+      handleClose();
+      // Refresh page to load new household data
+      window.location.reload();
+    } catch (error) {
+      console.error('Failed to join household:', error);
+      setErrors({ 
+        submit: error.response?.data?.message || 'Failed to join household. Please try again.' 
+      });
+    } finally {
+      setIsJoining(false);
+    }
+  };
+
+  const handleClose = () => {
+    setInviteCode('');
+    setHouseholdInfo(null);
+    setErrors({});
+    onClose();
+  };
+
+  const handleCodeChange = (e) => {
+    const value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    setInviteCode(value);
+    setHouseholdInfo(null);
+    if (errors.code) {
+      setErrors(prev => ({ ...prev, code: undefined }));
+    }
+  };
+
+  return (
+    <GlassModal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title="Join Household"
+      maxWidth="md"
+    >
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="text-center space-y-3">
+          <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-emerald-600 
+                          rounded-glass-lg mx-auto flex items-center justify-center">
+            <UserPlus className="w-8 h-8 text-white" />
+          </div>
+          <GlassText variant="secondary">
+            Enter the invite code shared by a household member to join their household.
+          </GlassText>
+        </div>
+
+        {/* Invite Code Input */}
+        <div className="space-y-4">
+          <GlassInput
+            label="Invite Code"
+            placeholder="ABCD1234"
+            value={inviteCode}
+            onChange={handleCodeChange}
+            error={errors.code}
+            icon={Key}
+            rightIcon={!householdInfo && inviteCode.length >= 6 ? UserPlus : undefined}
+            onRightIconClick={validateInviteCode}
+            maxLength={8}
+            required
+          />
+
+          {inviteCode.length >= 6 && !householdInfo && (
+            <GlassButton
+              variant="secondary"
+              onClick={validateInviteCode}
+              loading={isValidating}
+              icon={Key}
+              className="w-full"
+            >
+              Validate Code
+            </GlassButton>
+          )}
+        </div>
+
+        {/* Household Info Preview */}
+        {householdInfo && (
+          <div className="p-4 glass-input rounded-glass border-l-4 border-l-emerald-400">
+            <div className="flex items-start space-x-3">
+              <div className="w-10 h-10 bg-emerald-500/20 rounded-glass flex items-center justify-center flex-shrink-0">
+                <Users className="w-5 h-5 text-emerald-400" />
+              </div>
+              <div className="flex-1">
+                <h4 className="font-medium text-glass mb-1">{householdInfo.name}</h4>
+                {householdInfo.description && (
+                  <p className="text-glass-secondary text-sm mb-2">{householdInfo.description}</p>
+                )}
+                <div className="text-glass-muted text-xs">
+                  {householdInfo.member_count} member{householdInfo.member_count !== 1 ? 's' : ''} • 
+                  Admin: {householdInfo.admin_name}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Info Box */}
+        <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-glass">
+          <GlassText className="text-emerald-300 text-sm">
+            🔗 Ask a household member to share their invite code with you. 
+            You can find invite codes in the household settings.
+          </GlassText>
+        </div>
+
+        {/* Error Message */}
+        {errors.submit && (
+          <div className="p-3 bg-red-500/20 border border-red-500/30 rounded-glass">
+            <GlassText className="text-red-300 text-sm">{errors.submit}</GlassText>
+          </div>
+        )}
+
+        {/* Action Buttons */}
+        <div className="flex space-x-3 pt-4">
+          <GlassButton
+            variant="ghost"
+            onClick={handleClose}
+            className="flex-1"
+            disabled={isJoining}
+          >
+            Cancel
+          </GlassButton>
+          
+          <GlassButton
+            variant="primary"
+            onClick={handleJoinHousehold}
+            loading={isJoining}
+            icon={UserPlus}
+            className="flex-1"
+            disabled={!householdInfo}
+          >
+            Join Household
+          </GlassButton>
+        </div>
+      </div>
+    </GlassModal>
+  );
 };
 
-// Auto-save hook for forms
-export const useFormAutoSave = (form, saveFunction, options = {}) => {
-  const { 
-    delay = 2000, // 2 seconds
-    enabled = true,
-    onSaveSuccess,
-    onSaveError 
-  } = options;
-
-  useEffect(() => {
-    if (!enabled || !form.isDirty) return;
-
-    const timeoutId = setTimeout(async () => {
-      try {
-        await saveFunction(form.values);
-        onSaveSuccess?.(form.values);
-      } catch (error) {
-        console.error('Auto-save failed:', error);
-        onSaveError?.(error, form.values);
-      }
-    }, delay);
-
-    return () => clearTimeout(timeoutId);
-  }, [form.values, form.isDirty, delay, enabled, saveFunction, onSaveSuccess, onSaveError]);
-};
+export default JoinHouseholdModal;
 EOF
 
-# Create index.js barrel exports
-cat > src/hooks/form/index.js << 'EOF'
-// Barrel exports for tree-shaking
-export { useBasicForm } from './useBasicForm';
-export { useFormValidation, createValidationSchema, validationRules } from './useFormValidation';
-export { useFieldArray } from './useFieldArray';
-export { useMultiStepForm } from './useMultiStepForm';
-export { useFormPersistence, useFormAutoSave } from './useFormPersistence';
+# Create the household pages directory and files
+mkdir -p src/pages/household
 
-// Convenience composable hook for common use cases
-export const useForm = (initialValues = {}, options = {}) => {
-  const {
-    validationSchema,
-    validateOnChange = false,
-    validateOnBlur = true,
-    persistKey,
-    autoSave,
-    ...formOptions
-  } = options;
+cat > src/pages/household/CreateHouseholdPage.jsx << 'EOF'
+import HouseholdOnboarding from "../../components/features/household/HouseholdOnboarding.jsx";
 
-  // Import hooks dynamically to avoid loading unused code
-  const { useBasicForm } = require('./useBasicForm');
-  const form = useBasicForm(initialValues, formOptions);
+const CreateHouseholdPage = () => {
+  return <HouseholdOnboarding />;
+};
 
-  // Add validation if schema provided
-  let validation = null;
-  if (validationSchema) {
-    const { useFormValidation } = require('./useFormValidation');
-    validation = useFormValidation(validationSchema, form, { validateOnChange, validateOnBlur });
+export default CreateHouseholdPage;
+EOF
+
+cat > src/pages/household/JoinHouseholdPage.jsx << 'EOF'
+import HouseholdOnboarding from "../../components/features/household/HouseholdOnboarding.jsx";
+
+const JoinHouseholdPage = () => {
+  return <HouseholdOnboarding />;
+};
+
+export default JoinHouseholdPage;
+EOF
+
+cat > src/pages/household/InvitePage.jsx << 'EOF'
+import { useState } from "react";
+import { Copy, Share, Users, Link as LinkIcon } from "lucide-react";
+import toast from "react-hot-toast";
+import GlassContainer from "../../components/ui/GlassContainer.jsx";
+import GlassSection from "../../components/ui/GlassSection.jsx";
+import GlassButton from "../../components/ui/GlassButton.jsx";
+import GlassText from "../../components/ui/GlassText.jsx";
+import GlassHeading from "../../components/ui/GlassHeading.jsx";
+import { useHousehold } from "../../contexts/HouseholdContext.jsx";
+
+const InvitePage = () => {
+  const { activeHousehold, generateInvite, isGeneratingInvite } = useHousehold();
+  const [inviteCode, setInviteCode] = useState(null);
+
+  const handleGenerateInvite = async () => {
+    try {
+      const response = await generateInvite();
+      setInviteCode(response.data.invite_code);
+      toast.success('Invite code generated!');
+    } catch (error) {
+      console.error('Failed to generate invite:', error);
+      toast.error('Failed to generate invite code');
+    }
+  };
+
+  const handleCopyCode = () => {
+    if (inviteCode) {
+      navigator.clipboard.writeText(inviteCode);
+      toast.success('Invite code copied to clipboard!');
+    }
+  };
+
+  const handleShare = () => {
+    if (navigator.share && inviteCode) {
+      navigator.share({
+        title: `Join ${activeHousehold?.name} on Homey`,
+        text: `You've been invited to join ${activeHousehold?.name} household on Homey! Use invite code: ${inviteCode}`,
+        url: window.location.origin
+      });
+    } else {
+      handleCopyCode();
+    }
+  };
+
+  if (!activeHousehold) {
+    return (
+      <div className="space-y-6">
+        <GlassContainer variant="default" className="text-center">
+          <GlassText variant="muted">Please select a household to generate invites.</GlassText>
+        </GlassContainer>
+      </div>
+    );
   }
 
-  // Add persistence if key provided
-  let persistence = null;
-  if (persistKey) {
-    const { useFormPersistence } = require('./useFormPersistence');
-    persistence = useFormPersistence(form, persistKey);
-  }
+  return (
+    <div className="space-y-6 pb-20">
+      <GlassContainer variant="strong" padding="lg">
+        <GlassSection 
+          title="Invite Members"
+          subtitle={`Invite others to join ${activeHousehold.name}`}
+        >
+          <div className="space-y-6">
+            {/* Household Info */}
+            <div className="flex items-center space-x-4 glass-input p-4 rounded-glass">
+              <div className="w-12 h-12 bg-primary/20 rounded-glass flex items-center justify-center">
+                <Users className="w-6 h-6 text-primary-bright" />
+              </div>
+              <div className="flex-1">
+                <GlassHeading level={4}>{activeHousehold.name}</GlassHeading>
+                <GlassText variant="secondary" className="text-sm">
+                  {activeHousehold.member_count} member{activeHousehold.member_count !== 1 ? 's' : ''}
+                </GlassText>
+              </div>
+            </div>
 
-  // Add auto-save if enabled
-  if (autoSave?.enabled) {
-    const { useFormAutoSave } = require('./useFormPersistence');
-    useFormAutoSave(form, autoSave.saveFunction, autoSave.options);
-  }
+            {/* Generate Invite */}
+            {!inviteCode ? (
+              <div className="text-center space-y-4">
+                <GlassText variant="secondary">
+                  Generate a unique invite code to share with new members
+                </GlassText>
+                <GlassButton
+                  variant="primary"
+                  onClick={handleGenerateInvite}
+                  loading={isGeneratingInvite}
+                  icon={LinkIcon}
+                  size="lg"
+                >
+                  Generate Invite Code
+                </GlassButton>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {/* Invite Code Display */}
+                <div className="text-center space-y-3">
+                  <GlassText variant="secondary">Share this code with new members:</GlassText>
+                  <div className="glass-card glass-card-violet p-6 rounded-glass-lg">
+                    <div className="text-3xl font-mono font-bold text-glass letter-spacing-widest">
+                      {inviteCode}
+                    </div>
+                  </div>
+                </div>
 
-  return {
-    ...form,
-    // Enhanced methods with validation
-    setValue: validation?.setValueWithValidation || form.setValue,
-    handleBlur: validation?.handleBlurWithValidation || form.handleBlur,
-    validate: validation?.validate,
-    isValidating: validation?.isValidating || false,
-    // Persistence methods
-    clearPersistedData: persistence?.clearPersistedData,
-    hasPersistedData: persistence?.hasPersistedData,
-  };
+                {/* Action Buttons */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <GlassButton
+                    variant="secondary"
+                    onClick={handleCopyCode}
+                    icon={Copy}
+                  >
+                    Copy Code
+                  </GlassButton>
+                  
+                  <GlassButton
+                    variant="primary"
+                    onClick={handleShare}
+                    icon={Share}
+                  >
+                    Share Invite
+                  </GlassButton>
+                </div>
+
+                {/* Generate New Code */}
+                <div className="text-center pt-4">
+                  <GlassButton
+                    variant="ghost"
+                    onClick={handleGenerateInvite}
+                    loading={isGeneratingInvite}
+                    size="sm"
+                  >
+                    Generate New Code
+                  </GlassButton>
+                </div>
+              </div>
+            )}
+
+            {/* Instructions */}
+            <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-glass">
+              <GlassHeading level={5} className="mb-2">How to invite members:</GlassHeading>
+              <ol className="text-sm text-blue-300 space-y-1 list-decimal list-inside">
+                <li>Share the invite code with the person you want to invite</li>
+                <li>They should download Homey and create an account</li>
+                <li>During onboarding, they can choose "Join Household" and enter the code</li>
+                <li>Once they join, they'll have access to your household's tasks and expenses</li>
+              </ol>
+            </div>
+          </div>
+        </GlassSection>
+      </GlassContainer>
+    </div>
+  );
 };
+
+export default InvitePage;
 EOF
 
-echo "✅ Form hooks created successfully!"
+echo "✅ Household onboarding system created!"
 echo ""
-echo "📋 Created files:"
-echo "  - src/hooks/form/useBasicForm.js           (~2KB)"
-echo "  - src/hooks/form/useFormValidation.js      (~3KB)"
-echo "  - src/hooks/form/useFieldArray.js          (~1KB)"
-echo "  - src/hooks/form/useMultiStepForm.js       (~2KB)"
-echo "  - src/hooks/form/useFormPersistence.js     (~1KB)"
-echo "  - src/hooks/form/index.js                  (barrel exports)"
+echo "📁 Created files:"
+echo "  - src/components/features/household/HouseholdOnboarding.jsx (Main onboarding wizard)"
+echo "  - src/components/features/household/CreateHouseholdModal.jsx (Create household flow)"
+echo "  - src/components/features/household/JoinHouseholdModal.jsx (Join household flow)"
+echo "  - src/pages/household/CreateHouseholdPage.jsx"
+echo "  - src/pages/household/JoinHouseholdPage.jsx"
+echo "  - src/pages/household/InvitePage.jsx (Invite management)"
 echo ""
-echo "🚀 Usage examples:"
-echo "  // Basic form (2KB)"
-echo "  import { useBasicForm } from '@/hooks/form/useBasicForm';"
+echo "🎯 Now you need to update your App.jsx to show HouseholdOnboarding when no household is selected!"
 echo ""
-echo "  // Form with validation (5KB)"
-echo "  import { useForm, validationRules } from '@/hooks/form';"
+echo "Add this logic to App.jsx in the AppContent component:"
 echo ""
-echo "  // Dynamic fields (3KB)"
-echo "  import { useBasicForm, useFieldArray } from '@/hooks/form';"
+echo "  // Show onboarding if no households exist"
+echo "  if (households.length === 0) {"
+echo "    return <HouseholdOnboarding />;"
+echo "  }"
 echo ""
-echo "🎯 Bundle optimization complete!"
-EOF
-
-chmod +x create_form_hooks.sh
+echo "🚀 This will let users create/join households before accessing the task system!"

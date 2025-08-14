@@ -1,24 +1,23 @@
-import client from './client.js';
+import client from "./client.js";
 
 export const tasksAPI = {
   // Get household tasks
   async getTasks(householdId, filters = {}) {
     const params = new URLSearchParams();
-    
-    if (filters.status) params.append('status', filters.status);
-    if (filters.assignee) params.append('assignee', filters.assignee);
-    if (filters.due_date) params.append('due_date', filters.due_date);
-    if (filters.is_recurring !== undefined) params.append('is_recurring', filters.is_recurring);
-    
+
+    if (filters.status) params.append("status", filters.status);
+    if (filters.assignee) params.append("assignee", filters.assignee);
+    if (filters.due_date) params.append("due_date", filters.due_date);
+    if (filters.is_recurring !== undefined) params.append("is_recurring", filters.is_recurring);
+
     const queryString = params.toString();
-    const url = queryString 
+    const url = queryString
       ? `/api/households/${householdId}/tasks?${queryString}`
       : `/api/households/${householdId}/tasks`;
-      
+
     const response = await client.get(url);
     return response.data;
   },
-
   // Create new task
   async createTask(householdId, data) {
     const response = await client.post(`/api/households/${householdId}/tasks`, data);
@@ -89,14 +88,14 @@ export const tasksAPI = {
 
   // Batch operations
   async batchCompleteTask(taskIds) {
-    const response = await client.post('/api/tasks/batch/complete', {
+    const response = await client.post("/api/tasks/batch/complete", {
       task_ids: taskIds,
     });
     return response.data;
   },
 
   async batchAssignTasks(assignments) {
-    const response = await client.post('/api/tasks/batch/assign', {
+    const response = await client.post("/api/tasks/batch/assign", {
       assignments, // [{ task_id, user_ids }]
     });
     return response.data;

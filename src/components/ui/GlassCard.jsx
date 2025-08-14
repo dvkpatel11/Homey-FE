@@ -1,12 +1,6 @@
 import { useTheme } from "../../contexts/ThemeContext.jsx";
 
-const GlassCard = ({
-  children,
-  className = "",
-  hover = true,
-  variant = "default", // "default", "subtle", "strong", "violet"
-  ...props
-}) => {
+const GlassCard = ({ children, className = "", hover = true, variant = "default", ...props }) => {
   const { isDark, reducedMotion } = useTheme();
 
   const variants = {

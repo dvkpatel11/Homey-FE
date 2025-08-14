@@ -1,20 +1,20 @@
-import { mockHouseholds } from '../../mock-data/households.js';
-import { mockUsers } from '../../mock-data/users.js';
-import { mockTasks } from '../../mock-data/tasks.js';
-import { mockExpenses } from '../../mock-data/expenses.js';
+import { bills as mockExpenses } from "../../../mock-data/expenses.js";
+import { mockHouseholds } from "../../../mock-data/households.js";
+import { tasks as mockTasks } from "../../../mock-data/tasks.js";
+import { mockUsers } from "../../../mock-data/users.js";
 
 let households = [...mockHouseholds];
 let householdMembers = new Map();
 
 // Initialize household members
-households.forEach(household => {
+households.forEach((household) => {
   const members = mockUsers.slice(0, household.member_count || 2).map((user, index) => ({
     id: `member_${household.id}_${user.id}`,
     user_id: user.id,
     full_name: user.full_name,
     email: user.email,
     avatar_url: user.avatar_url,
-    role: index === 0 ? 'admin' : 'member',
+    role: index === 0 ? "admin" : "member",
     joined_at: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
   }));
   householdMembers.set(household.id, members);
@@ -23,12 +23,12 @@ households.forEach(household => {
 export const householdMock = {
   async getHouseholds() {
     return {
-      data: households.map(h => ({
+      data: households.map((h) => ({
         ...h,
-        role: 'admin', // Simulate current user role
+        role: "admin", // Simulate current user role
         joined_at: new Date().toISOString(),
       })),
-      message: 'Households retrieved successfully',
+      message: "Households retrieved successfully",
     };
   },
 
@@ -36,7 +36,7 @@ export const householdMock = {
     const newHousehold = {
       id: `household_${Date.now()}`,
       name: data.name,
-      admin_id: 'current_user_id',
+      admin_id: "current_user_id",
       invite_code: Math.random().toString(36).substring(2, 8).toUpperCase(),
       max_members: data.max_members || 10,
       member_count: 1,
@@ -49,52 +49,55 @@ export const householdMock = {
     };
 
     households.push(newHousehold);
-    
+
     // Add creator as admin member
-    householdMembers.set(newHousehold.id, [{
-      id: `member_${newHousehold.id}_current_user`,
-      user_id: 'current_user_id',
-      full_name: 'Current User',
-      email: 'current@user.com',
-      avatar_url: null,
-      role: 'admin',
-      joined_at: new Date().toISOString(),
-    }]);
+    householdMembers.set(newHousehold.id, [
+      {
+        id: `member_${newHousehold.id}_current_user`,
+        user_id: "current_user_id",
+        full_name: "Current User",
+        email: "current@user.com",
+        avatar_url: null,
+        role: "admin",
+        joined_at: new Date().toISOString(),
+      },
+    ]);
 
     return {
       data: newHousehold,
-      message: 'Household created successfully',
+      message: "Household created successfully",
     };
   },
 
   async getHousehold({ params }) {
-    const household = households.find(h => h.id === params.id);
-    
+    // Always return a valid household for mock
+    const household = households[0];
     if (!household) {
-      throw {
-        code: 'HOUSEHOLD_NOT_FOUND',
-        message: 'Household not found',
-        status: 404,
+      // Only throw if mock data is truly empty
+      return {
+        data: null,
+        message: "No household found",
+        status: 200,
       };
     }
-
     return {
       data: {
         ...household,
-        role: 'admin',
+        role: "admin",
         joined_at: new Date().toISOString(),
       },
-      message: 'Household retrieved successfully',
+      message: "Household retrieved successfully",
+      status: 200,
     };
   },
 
   async updateHousehold({ params, data }) {
-    const householdIndex = households.findIndex(h => h.id === params.id);
-    
+    const householdIndex = households.findIndex((h) => h.id === params.id);
+
     if (householdIndex === -1) {
       throw {
-        code: 'HOUSEHOLD_NOT_FOUND',
-        message: 'Household not found',
+        code: "HOUSEHOLD_NOT_FOUND",
+        message: "Household not found",
         status: 404,
       };
     }
@@ -107,17 +110,17 @@ export const householdMock = {
 
     return {
       data: households[householdIndex],
-      message: 'Household updated successfully',
+      message: "Household updated successfully",
     };
   },
 
   async deleteHousehold({ params }) {
-    const householdIndex = households.findIndex(h => h.id === params.id);
-    
+    const householdIndex = households.findIndex((h) => h.id === params.id);
+
     if (householdIndex === -1) {
       throw {
-        code: 'HOUSEHOLD_NOT_FOUND',
-        message: 'Household not found',
+        code: "HOUSEHOLD_NOT_FOUND",
+        message: "Household not found",
         status: 404,
       };
     }
@@ -127,34 +130,34 @@ export const householdMock = {
 
     return {
       data: { deleted: true },
-      message: 'Household deleted successfully',
+      message: "Household deleted successfully",
     };
   },
 
   async getMembers({ params }) {
     const members = householdMembers.get(params.id) || [];
-    
+
     return {
       data: members,
-      message: 'Members retrieved successfully',
+      message: "Members retrieved successfully",
     };
   },
 
   async createInvite({ params }) {
-    const household = households.find(h => h.id === params.id);
-    
+    const household = households.find((h) => h.id === params.id);
+
     if (!household) {
       throw {
-        code: 'HOUSEHOLD_NOT_FOUND',
-        message: 'Household not found',
+        code: "HOUSEHOLD_NOT_FOUND",
+        message: "Household not found",
         status: 404,
       };
     }
 
     const newInviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-    
+
     // Update household with new invite code
-    const householdIndex = households.findIndex(h => h.id === params.id);
+    const householdIndex = households.findIndex((h) => h.id === params.id);
     households[householdIndex].invite_code = newInviteCode;
 
     return {
@@ -163,67 +166,63 @@ export const householdMock = {
         invite_link: `https://homey.app/join/${newInviteCode}`,
         expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       },
-      message: 'Invite code generated successfully',
+      message: "Invite code generated successfully",
     };
   },
 
   async removeMember({ params }) {
     const members = householdMembers.get(params.id) || [];
-    const updatedMembers = members.filter(m => m.user_id !== params.userId);
+    const updatedMembers = members.filter((m) => m.user_id !== params.userId);
     householdMembers.set(params.id, updatedMembers);
 
     return {
       data: { removed: true },
-      message: 'Member removed successfully',
+      message: "Member removed successfully",
     };
   },
 
   async leaveHousehold({ params }) {
     const members = householdMembers.get(params.id) || [];
-    const updatedMembers = members.filter(m => m.user_id !== 'current_user_id');
+    const updatedMembers = members.filter((m) => m.user_id !== "current_user_id");
     householdMembers.set(params.id, updatedMembers);
 
     return {
       data: { left: true },
-      message: 'Left household successfully',
+      message: "Left household successfully",
     };
   },
 
   async getDashboard({ params }) {
-    const householdTasks = mockTasks.filter(t => t.household_id === params.id);
-    const householdExpenses = mockExpenses.filter(e => e.household_id === params.id);
-    
+    const householdTasks = mockTasks.filter((t) => t.household_id === params.id);
+    const householdExpenses = mockExpenses.filter((e) => e.household_id === params.id);
+
     const kpis = {
-      outstanding_tasks: householdTasks.filter(t => t.status === 'pending').length,
+      outstanding_tasks: householdTasks.filter((t) => t.status === "pending").length,
       total_balance_owed: householdExpenses.reduce((sum, e) => sum + e.amount, 0),
-      upcoming_deadlines: householdTasks.filter(t => {
+      upcoming_deadlines: householdTasks.filter((t) => {
         if (!t.due_date) return false;
         const dueDate = new Date(t.due_date);
         const weekFromNow = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-        return dueDate <= weekFromNow && t.status !== 'completed';
+        return dueDate <= weekFromNow && t.status !== "completed";
       }).length,
       recent_activity_count: Math.floor(Math.random() * 10) + 5,
     };
 
     const calendar_events = householdTasks
-      .filter(t => t.due_date)
+      .filter((t) => t.due_date)
       .slice(0, 5)
-      .map(t => ({
+      .map((t) => ({
         id: t.id,
         title: t.title,
         date: t.due_date,
-        type: 'task',
-        assigned_to: t.assignments?.[0]?.assigned_to_name || 'Unassigned',
+        type: "task",
+        assigned_to: t.assignments?.[0]?.assigned_to_name || "Unassigned",
       }));
 
     const recent_activity = Array.from({ length: 8 }, (_, i) => ({
       id: `activity_${i}`,
-      type: ['task_completed', 'bill_paid', 'member_joined'][i % 3],
-      message: [
-        'Kitchen cleaned',
-        'Rent payment recorded',
-        'New member joined household'
-      ][i % 3],
+      type: ["task_completed", "bill_paid", "member_joined"][i % 3],
+      message: ["Kitchen cleaned", "Rent payment recorded", "New member joined household"][i % 3],
       timestamp: new Date(Date.now() - i * 60 * 60 * 1000).toISOString(),
       user: {
         name: mockUsers[i % mockUsers.length].full_name,
@@ -237,7 +236,7 @@ export const householdMock = {
         calendar_events,
         recent_activity,
       },
-      message: 'Dashboard data retrieved successfully',
+      message: "Dashboard data retrieved successfully",
     };
   },
 };

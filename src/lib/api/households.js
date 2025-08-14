@@ -69,7 +69,7 @@ export const householdsAPI = {
     window.dispatchEvent(
       new StorageEvent("storage", {
         key: "activeHouseholdId",
-        newValue: householdId,
+        newValue: JSON.stringify(householdId), // ✅ Now it's JSON!
       })
     );
   },
@@ -77,6 +77,10 @@ export const householdsAPI = {
   // Get active household ID
   getActiveHouseholdId() {
     return HouseholdStorage.getActiveId();
+  },
+
+  removeHouseholdId(id) {
+    return HouseholdStorage.removeId(id);
   },
 };
 

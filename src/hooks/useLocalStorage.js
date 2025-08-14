@@ -7,7 +7,29 @@ class LocalStorageManager {
   static get(key, defaultValue = null) {
     try {
       const item = window.localStorage.getItem(key);
-      return item ? JSON.parse(item) : defaultValue;
+      if (!item) return defaultValue;
+
+      // Try to parse as JSON first
+      try {
+        return JSON.parse(item);
+      } catch (jsonError) {
+        // If JSON parsing fails, check if it's a simple string value
+        console.warn(`localStorage key "${key}" contains non-JSON value, using as string:`, item);
+
+        // For common string values that shouldn't be JSON, return as-is
+        if (
+          typeof item === "string" &&
+          (["dark", "light", "system"].includes(item) || // theme values
+            item.startsWith("household_") || // household IDs
+            item.length < 100) // short strings are probably not meant to be JSON
+        ) {
+          return item;
+        }
+
+        // For other cases, return the default value and log
+        console.warn(`Could not parse localStorage key "${key}", using default value`);
+        return defaultValue;
+      }
     } catch (error) {
       console.error(`Error reading localStorage key "${key}":`, error);
       return defaultValue;
@@ -153,6 +175,7 @@ export const HouseholdStorage = {
   getActiveId: () => LocalStorageManager.get("activeHouseholdId"),
   setActiveId: (id) => LocalStorageManager.set("activeHouseholdId", id),
   removeActiveId: () => LocalStorageManager.remove("activeHouseholdId"),
+  removeId: (id) => LocalStorageManager.remove(id),
   hasActiveId: () => LocalStorageManager.has("activeHouseholdId"),
 };
 

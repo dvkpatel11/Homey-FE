@@ -5,17 +5,17 @@ import { Toaster } from "react-hot-toast";
 
 // Context Providers
 import { AuthProvider, useAuth } from "./contexts/AuthContext.jsx";
-import { HouseholdProvider, useHousehold } from "./contexts/HouseholdContext.jsx";
+import { HouseholdProvider } from "./contexts/HouseholdContext.jsx";
 import { NotificationProvider } from "./contexts/NotificationContext.jsx";
 import { ThemeProvider, useTheme } from "./contexts/ThemeContext.jsx";
 
 // Layout Components
-import FloatingElements from "./components/layout/FloatingElements.jsx";
-import Header from "./components/layout/Header.jsx";
+import Header from "./components/layout/Header";
 import Navigation from "./components/layout/Navigation.jsx";
 
-// Household Onboarding
-import HouseholdOnboarding from "./components/features/household/HouseholdOnboarding.jsx";
+// Auth Components (commented out for now)
+// import LoginForm from "./components/features/auth/LoginForm";
+// import AuthLayout from "./components/layout/AuthLayout";
 
 // Lazy load pages for better performance
 const DashboardPage = lazy(() => import("./pages/dashboard/DashboardPage"));
@@ -38,7 +38,7 @@ const queryClient = new QueryClient({
   },
 });
 
-// Loading component with glass styling
+// Loading component with new glass styling
 const PageLoader = () => (
   <div className="flex items-center justify-center min-h-64">
     <div className="glass-card p-8 flex flex-col items-center space-y-4">
@@ -48,7 +48,7 @@ const PageLoader = () => (
   </div>
 );
 
-// Error fallback component
+// Error fallback component with new glass styling
 const ErrorFallback = ({ error, resetErrorBoundary }) => (
   <div className="flex items-center justify-center min-h-screen p-6">
     <div className="glass-card glass-card-strong p-8 max-w-md w-full text-center">
@@ -73,12 +73,11 @@ const ErrorFallback = ({ error, resetErrorBoundary }) => (
   </div>
 );
 
-// Enhanced loading component
-const AppLoader = () => {
+// Development auth bypass loader
+const DevLoader = () => {
   return (
     <div className="min-h-screen bg-homey-bg checkered-violet flex items-center justify-center safe-area-inset">
-      <FloatingElements />
-      <div className="flex flex-col items-center space-y-6 relative z-10">
+      <div className="flex flex-col items-center space-y-6">
         <div className="glass-card glass-card-violet p-6 rounded-glass-xl">
           <div className="w-16 h-16 rounded-full bg-gradient-to-br from-homey-violet-500 to-homey-violet-600 flex items-center justify-center">
             <div className="animate-spin rounded-full h-8 w-8 border-2 border-white/30 border-t-white"></div>
@@ -93,37 +92,38 @@ const AppLoader = () => {
   );
 };
 
-// Main App Content Component with household integration
+// Main App Content Component
 const AppContent = () => {
-  const { isLoading: authLoading } = useAuth();
-  const { households, activeHousehold, isLoading: householdLoading } = useHousehold();
+  // TEMPORARILY BYPASS AUTH FOR DEVELOPMENT
+  const { isLoading } = useAuth();
   const { isDark } = useTheme();
   const [currentPage, setCurrentPage] = useState("dashboard");
 
   // Mock auth state for development
-  const isLoggedIn = true;
+  const isLoggedIn = true; // Force logged in for development
 
   // Memoized page handler for better performance
   const handlePageChange = useCallback((page) => {
     setCurrentPage(page);
   }, []);
 
-  // Show loading while checking auth or households
-  if (authLoading || householdLoading) {
-    return <AppLoader />;
+  // Show enhanced loading while checking auth (shortened for dev)
+  if (isLoading) {
+    return <DevLoader />;
   }
 
-  // Show onboarding if no households exist or none is active
-  if (!households || households.length === 0 || !activeHousehold) {
-    return (
-      <ErrorBoundary FallbackComponent={ErrorFallback}>
-        <div className={`min-h-screen ${isDark ? "dark" : ""} bg-homey-bg checkered-violet`}>
-          <FloatingElements />
-          <HouseholdOnboarding />
-        </div>
-      </ErrorBoundary>
-    );
-  }
+  // COMMENTED OUT AUTH CHECK FOR DEVELOPMENT
+  // if (!isLoggedIn) {
+  //   return (
+  //     <ErrorBoundary FallbackComponent={ErrorFallback}>
+  //       <AuthLayout>
+  //         <Suspense fallback={<PageLoader />}>
+  //           <LoginForm />
+  //         </Suspense>
+  //       </AuthLayout>
+  //     </ErrorBoundary>
+  //   );
+  // }
 
   // Render the current page based on navigation
   const renderCurrentPage = () => {
@@ -134,23 +134,19 @@ const AppContent = () => {
         return <TasksPage key={currentPage} />;
       case "expenses":
         return <ExpensesPage key={currentPage} />;
-
       default:
         return <DashboardPage key={currentPage} />;
     }
   };
 
-  // Main app layout with household data
+  // Main app layout for authenticated users (using new glass system)
   return (
     <ErrorBoundary FallbackComponent={ErrorFallback}>
       <div
         className={`min-h-screen ${isDark ? "dark" : ""} bg-homey-bg checkered-violet relative overflow-hidden safe-area-inset`}
       >
-        {/* Floating background elements */}
-        <FloatingElements />
-
-        {/* Header with household context */}
-        <Header />
+        {/* Header with safe area */}
+        <Header className="safe-area-top" />
 
         {/* Main content area */}
         <main className="p-4 sm:p-6 pb-24 sm:pb-32 relative z-10 min-h-screen">
@@ -159,8 +155,8 @@ const AppContent = () => {
           </Suspense>
         </main>
 
-        {/* Bottom navigation */}
-        <Navigation currentPage={currentPage} setCurrentPage={handlePageChange} />
+        {/* Bottom navigation with safe area */}
+        <Navigation currentPage={currentPage} setCurrentPage={handlePageChange} className="safe-area-bottom" />
       </div>
     </ErrorBoundary>
   );
@@ -177,7 +173,7 @@ const App = () => {
               <NotificationProvider>
                 <AppContent />
 
-                {/* Enhanced Toast Notifications */}
+                {/* Enhanced Toast Notifications with new glass styling */}
                 <Toaster
                   position="top-center"
                   containerClassName="safe-area-top"
@@ -233,3 +229,47 @@ const App = () => {
 };
 
 export default App;
+
+// ==========================================
+// DEVELOPMENT NOTES:
+// ==========================================
+
+/* 
+🚀 AUTH BYPASS FOR DEVELOPMENT:
+
+1. Set `isLoggedIn = true` to skip auth flow
+2. Commented out auth check conditional
+3. All context providers still active
+4. Mock data will be used via your API layer
+5. Full household/task/expense functionality available
+
+🔧 QUERY CLIENT SETUP:
+
+1. Added QueryClientProvider at the top level
+2. Configured default options for queries
+3. Auth error handling in place
+4. 5-minute stale time for better performance
+
+🎨 NEW GLASS STYLING INTEGRATED:
+
+1. Updated all glass components to use new utilities
+2. Toast notifications use CSS variables
+3. Checkered background pattern applied
+4. Violet accent colors throughout
+
+🔧 TO RE-ENABLE AUTH LATER:
+
+1. Uncomment the auth check conditional
+2. Set `isLoggedIn` back to use `useAuth()` hook
+3. Uncomment AuthLayout and LoginForm imports
+4. Remove the mock `isLoggedIn = true` line
+
+📱 READY FOR COMPONENT DEVELOPMENT:
+
+- QueryClient properly configured
+- All your hooks (useTasks, useExpenses, etc.) are active
+- Mock data flows through your API layer
+- TanStack Query caching works
+- Real-time context updates work
+- New violet glassmorphic styling applied
+*/

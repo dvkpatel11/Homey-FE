@@ -1,33 +1,104 @@
-import { ArrowLeft } from "lucide-react";
-import { useTheme } from "../../contexts/ThemeContext.jsx";
-import GlassCard from "./GlassCard"; // ← FIXED: Now imports GlassCard
+import { AnimatePresence, motion } from "framer-motion";
+import { X } from "lucide-react";
+import { useEffect } from "react";
+import { createPortal } from "react-dom";
+import GlassHeading from "./GlassHeading.jsx";
+import IconButton from "./IconButton.jsx";
 
-const GlassModal = ({ isOpen, onClose, title, children, footer }) => {
-  const { themeClasses } = useTheme();
+const GlassModal = ({
+  isOpen,
+  onClose,
+  title,
+  children,
+  maxWidth = "lg",
+  showCloseButton = true,
+  className = "",
+  ...props
+}) => {
+  // Handle escape key
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === "Escape" && isOpen) {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener("keydown", handleEscape);
+      document.body.style.overflow = "hidden";
+    }
+
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+      document.body.style.overflow = "unset";
+    };
+  }, [isOpen, onClose]);
+
+  const maxWidthClasses = {
+    sm: "max-w-sm",
+    md: "max-w-md",
+    lg: "max-w-lg",
+    xl: "max-w-xl",
+    "2xl": "max-w-2xl",
+    "4xl": "max-w-4xl",
+    full: "max-w-full",
+  };
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-6 z-50">
-      <GlassCard className="w-full max-w-md transform hover:scale-105">
-        <div className="p-8">
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-2xl font-light text-gray-900 dark:text-white">{title}</h2>
-            <button
-              onClick={onClose}
-              className={`p-3 ${themeClasses.cardGlass} rounded-xl hover:scale-110 transition-all duration-300 hover:bg-red-500/10`}
-            >
-              <ArrowLeft className="w-6 h-6 text-gray-600 dark:text-gray-400" />
-            </button>
-          </div>
+  const modalContent = (
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 safe-area-inset">
+          {/* Backdrop */}
+          <motion.div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+          />
 
-          <div className="space-y-6">{children}</div>
+          {/* Modal */}
+          <motion.div
+            className={`
+              glass-card glass-card-strong rounded-glass-lg w-full
+              ${maxWidthClasses[maxWidth]}
+              relative z-10 max-h-[90vh] overflow-hidden
+              ${className}
+            `}
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ duration: 0.2 }}
+            {...props}
+          >
+            {/* Header */}
+            {(title || showCloseButton) && (
+              <div className="flex items-center justify-between p-6 border-b border-glass-border">
+                <div className="flex-1">
+                  {title && (
+                    <GlassHeading level={3} className="pr-8">
+                      {title}
+                    </GlassHeading>
+                  )}
+                </div>
+                {showCloseButton && (
+                  <IconButton icon={X} variant="ghost" size="sm" onClick={onClose} className="flex-shrink-0" />
+                )}
+              </div>
+            )}
 
-          {footer && <div className="mt-8">{footer}</div>}
+            {/* Content */}
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">{children}</div>
+          </motion.div>
         </div>
-      </GlassCard>
-    </div>
+      )}
+    </AnimatePresence>
   );
+
+  // Render modal in portal
+  return createPortal(modalContent, document.body);
 };
 
 export default GlassModal;
