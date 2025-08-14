@@ -1,7 +1,6 @@
 // Enhanced API client with better type safety and caching
 import { AuthStorage } from "../../hooks/useLocalStorage"; // adjust path
 import API_CONFIG from "../config/api.js";
-import mockClient from "./mock-client.js";
 import prodClient from "./prod-client.js";
 
 // Type definitions (consider moving to TypeScript)
@@ -171,9 +170,7 @@ class EnhancedApiClient {
   }
 }
 
-// Create enhanced client instance
-const baseClient = API_CONFIG.MODE === "mock" ? mockClient : prodClient;
-const client = new EnhancedApiClient(baseClient);
+const client = new EnhancedApiClient(prodClient);
 
 // Add authentication middleware
 client.use({

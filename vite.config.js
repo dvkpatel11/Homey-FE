@@ -137,7 +137,6 @@ export default defineConfig({
       "@hooks": "/src/hooks",
       "@lib": "/src/lib",
       "@utils": "/src/lib/utils",
-      "@mock-data": "/src/mock-data",
     },
   },
 

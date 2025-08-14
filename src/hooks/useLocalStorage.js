@@ -4,44 +4,23 @@ import { useCallback, useEffect, useState } from "react";
 // These can be used anywhere - API files, utilities, etc.
 
 class LocalStorageManager {
-  static get(key, defaultValue = null) {
-    try {
-      const item = window.localStorage.getItem(key);
-      if (!item) return defaultValue;
-
-      // Try to parse as JSON first
-      try {
-        return JSON.parse(item);
-      } catch (jsonError) {
-        // If JSON parsing fails, check if it's a simple string value
-        console.warn(`localStorage key "${key}" contains non-JSON value, using as string:`, item);
-
-        // For common string values that shouldn't be JSON, return as-is
-        if (
-          typeof item === "string" &&
-          (["dark", "light", "system"].includes(item) || // theme values
-            item.startsWith("household_") || // household IDs
-            item.length < 100) // short strings are probably not meant to be JSON
-        ) {
-          return item;
-        }
-
-        // For other cases, return the default value and log
-        console.warn(`Could not parse localStorage key "${key}", using default value`);
-        return defaultValue;
-      }
-    } catch (error) {
-      console.error(`Error reading localStorage key "${key}":`, error);
-      return defaultValue;
-    }
-  }
-
   static set(key, value) {
     try {
       if (value === null || value === undefined) {
         window.localStorage.removeItem(key);
       } else {
-        window.localStorage.setItem(key, JSON.stringify(value));
+        // FIXED: Don't JSON.stringify simple strings and numbers
+        let valueToStore;
+
+        if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+          // Store primitive values as-is (no JSON encoding)
+          valueToStore = String(value);
+        } else {
+          // Only JSON.stringify complex objects/arrays
+          valueToStore = JSON.stringify(value);
+        }
+
+        window.localStorage.setItem(key, valueToStore);
       }
 
       // Dispatch custom event for React hooks to listen
@@ -58,6 +37,30 @@ class LocalStorageManager {
     }
   }
 
+  // Also update the get method to handle this:
+  static get(key, defaultValue = null) {
+    try {
+      const item = window.localStorage.getItem(key);
+      if (!item) return defaultValue;
+
+      // FIXED: Better detection of JSON vs plain strings
+      if (item.startsWith("{") || item.startsWith("[") || item.startsWith('"')) {
+        // Looks like JSON, try to parse
+        try {
+          return JSON.parse(item);
+        } catch (jsonError) {
+          console.warn(`Failed to parse JSON for key "${key}":`, item);
+          return item; // Return as plain string if JSON parsing fails
+        }
+      } else {
+        // Plain string/number/boolean, return as-is
+        return item;
+      }
+    } catch (error) {
+      console.error(`Error reading localStorage key "${key}":`, error);
+      return defaultValue;
+    }
+  }
   static remove(key) {
     return this.set(key, null);
   }
@@ -186,7 +189,20 @@ export const useAuthToken = () => {
 
 // ============ HOUSEHOLD HOOKS ============
 export const useActiveHouseholdId = () => {
-  return useLocalStorage("activeHouseholdId", null);
+  const [rawId, setRawId, removeValue, hasValue] = useLocalStorage("activeHouseholdId", null);
+
+  const cleanId =
+    rawId && typeof rawId === "string" && rawId.startsWith('"') && rawId.endsWith('"')
+      ? rawId.slice(1, -1) // Remove quotes
+      : rawId;
+
+  const setCleanId = (id) => {
+    // Store without quotes
+    const cleanValue = id && typeof id === "string" && id.startsWith('"') && id.endsWith('"') ? id.slice(1, -1) : id;
+    setRawId(cleanValue);
+  };
+
+  return [cleanId, setCleanId, removeValue, hasValue];
 };
 
 // ============ THEME HOOKS ============

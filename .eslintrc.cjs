@@ -35,7 +35,6 @@ module.exports = {
           ["@hooks", "./src/hooks"],
           ["@lib", "./src/lib"],
           ["@utils", "./src/lib/utils"],
-          ["@mock-data", "./src/mock-data"],
         ],
         extensions: [".js", ".jsx", ".ts", ".tsx"],
       },
@@ -111,7 +110,6 @@ module.exports = {
       },
     },
     {
-      files: ["src/mock-data/**/*.js"],
       rules: {
         "no-console": "off", // Allow console.log in mock data
       },

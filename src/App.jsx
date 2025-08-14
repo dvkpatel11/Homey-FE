@@ -16,6 +16,9 @@ import Navigation from "./components/layout/Navigation.jsx";
 
 // Household Onboarding
 import HouseholdOnboarding from "./components/features/household/HouseholdOnboarding.jsx";
+// Auth Components (commented out for now)
+// import LoginForm from "./components/features/auth/LoginForm";
+// import AuthLayout from "./components/layout/AuthLayout";
 
 // Lazy load pages for better performance
 const DashboardPage = lazy(() => import("./pages/dashboard/DashboardPage"));
@@ -124,6 +127,18 @@ const AppContent = () => {
       </ErrorBoundary>
     );
   }
+  // COMMENTED OUT AUTH CHECK FOR DEVELOPMENT
+  // if (!isLoggedIn) {
+  //   return (
+  //     <ErrorBoundary FallbackComponent={ErrorFallback}>
+  //       <AuthLayout>
+  //         <Suspense fallback={<PageLoader />}>
+  //           <LoginForm />
+  //         </Suspense>
+  //       </AuthLayout>
+  //     </ErrorBoundary>
+  //   );
+  // }
 
   // Render the current page based on navigation
   const renderCurrentPage = () => {
