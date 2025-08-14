@@ -70,16 +70,16 @@ export const householdMock = {
   },
 
   async getHousehold({ params }) {
-    // Always return a valid household for mock
-    const household = households[0];
+    const household = households.find((h) => h.id === params.id);
+
     if (!household) {
-      // Only throw if mock data is truly empty
-      return {
-        data: null,
-        message: "No household found",
-        status: 200,
+      throw {
+        code: "HOUSEHOLD_NOT_FOUND",
+        message: "Household not found",
+        status: 404,
       };
     }
+
     return {
       data: {
         ...household,
@@ -87,7 +87,6 @@ export const householdMock = {
         joined_at: new Date().toISOString(),
       },
       message: "Household retrieved successfully",
-      status: 200,
     };
   },
 
